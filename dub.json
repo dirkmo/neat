@@ -1,0 +1,9 @@
+{
+	"name": "neat",
+	"authors": [
+		"Dirk Möller"
+	],
+	"description": "Neural Networks with NEAT",
+	"copyright": "Copyright © 2017, Dirk Möller",
+	"license": "proprietary"
+}

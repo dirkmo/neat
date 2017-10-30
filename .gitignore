@@ -1,0 +1,15 @@
+.dub
+docs.json
+__dummy.html
+docs/
+neat.so
+neat.dylib
+neat.dll
+neat.a
+neat.lib
+neat-test-*
+*.exe
+*.o
+*.obj
+*.lst
+neat
