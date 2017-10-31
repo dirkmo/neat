@@ -103,7 +103,8 @@ class Mutation {
 class Genome {
 
     /// create empty genome
-    @disable this();
+    this() {
+    }
 
     /// Create genome with inputs connected to all outputs,
     /// no hidden nodes
@@ -111,14 +112,14 @@ class Genome {
         this.inputs = inputs;
         this.outputs = outputs;
         foreach( i; 0..inputs ) {
-            addNode( Node.Type.input );
+            addNodeWithId( Node.Type.input, i );
         }
         foreach( o; 0..outputs ) {
-            addNode( Node.Type.output );
+            addNodeWithId( Node.Type.output, o + inputs );
         }
         foreach( i ; 0..inputs ) {
             foreach( o ; 0..outputs ) {
-                addConnection( i, o );
+                addConnection( i, inputs+o );
             }
         }
     }
@@ -130,7 +131,7 @@ class Genome {
 
         // add nodes
         foreach( n ; g.nodes ) {
-            addClonedNode(n);
+            Node newNode = addClonedNode(n);
         }
         foreach( c ; g.connections ) {
             addClonedConnection( c );
@@ -141,28 +142,36 @@ class Genome {
         return new Genome(this);
     }
 
-    /// add node with type, without connections
+    /// add node with type, new nodeId, without connections
     Node addNode( Node.Type type ) {
         Node n = new Node(type);
         nodes[n.nodeId] = n;
-        writeln("new node ", n.nodeId, " type: ", n.type);
+        return n;
+    }
+
+    Node addNodeWithId( Node.Type type, uint nodeId ) {
+        Node n = new Node(type, nodeId);
+        nodes[n.nodeId] = n;
         return n;
     }
 
     /// add new node with same type and id as n
     Node addClonedNode( Node n ) {
-        Node newNode = new Node(n);
-        nodes[n.nodeId] = newNode;
-        return newNode;
+        if( ! (n.nodeId in nodes) ) {
+            Node newNode = new Node(n);
+            nodes[newNode.nodeId] = newNode;
+            return newNode;
+        }
+        return nodes[n.nodeId];
     }
 
     /// add connection to map and update nodes connection list
     Connection addConnection( uint startNode, uint endNode ) {
-        if( ! startNode in nodes ) {
-            nodes[startNode] = new Node(Node.Type.hidden);
+        if( !(startNode in nodes) ) {
+            nodes[startNode] = new Node(Node.Type.hidden, startNode);
         }
-        if( ! endNode in nodes ) {
-            nodes[endNode] = new Node(Node.Type.hidden);
+        if( !(endNode in nodes) ) {
+            nodes[endNode] = new Node(Node.Type.hidden, endNode);
         }
         Connection c = new Connection( startNode, endNode );
         nodes[startNode].addOutput(c);
@@ -173,14 +182,16 @@ class Genome {
 
     Connection addClonedConnection( Connection c ) {
         Connection newCon = new Connection( c, c.inputNodeId, c.outputNodeId );
-        nodes[c.inputNodeId].addOutput(newCon);
-        nodes[c.outputNodeId].addInput(newCon);
-        connections[c.innovation] = c;
-        return c;
+        nodes[newCon.inputNodeId].addOutput(newCon);
+        nodes[newCon.outputNodeId].addInput(newCon);
+        connections[newCon.innovation] = newCon;
+        return newCon;
     }
 
     Genome crossOver( Genome g, bool gIsDominant ) {
-        Genome offspring = new Genome( inputs, outputs );
+        Genome offspring = new Genome();
+        offspring.inputs = this.inputs;
+        offspring.outputs = this.outputs;
         Connection[uint] p1 = connections.dup();
         Connection[uint] p2 = g.connections.dup();
         foreach( inno; p1.byKey ) {
@@ -188,14 +199,14 @@ class Genome {
                 // both parents have gene
                 if( 0.5f < uniform(0.0f, 1.0f) ) {
                     Connection c = p1[inno];
-                    offspring.addClonedNode( nodes[c.inputNodeId] );
-                    offspring.addClonedNode( nodes[c.outputNodeId] );                    
-                    offspring.addClonedConnection( c );
+                    Node n = offspring.addClonedNode( nodes[c.inputNodeId] );
+                    n = offspring.addClonedNode( nodes[c.outputNodeId] );
+                    Connection nc = offspring.addClonedConnection( c );
                 } else {
                     Connection c = p2[inno];
-                    offspring.addClonedNode( g.nodes[c.inputNodeId] );
-                    offspring.addClonedNode( g.nodes[c.outputNodeId] );                    
-                    offspring.addClonedConnection( c );              
+                    Node n = offspring.addClonedNode( g.nodes[c.inputNodeId] );
+                    n = offspring.addClonedNode( g.nodes[c.outputNodeId] );
+                    Connection nc = offspring.addClonedConnection( c );              
                 }
                 p2.remove(inno);
             } else {
@@ -203,10 +214,11 @@ class Genome {
                 if( !gIsDominant ) {
                     Connection c = p1[inno];
                     offspring.addClonedNode( nodes[c.inputNodeId] );
-                    offspring.addClonedNode( nodes[c.outputNodeId] );                    
-                    offspring.addClonedConnection( c );
+                    offspring.addClonedNode( nodes[c.outputNodeId] );
+                    Connection nc = offspring.addClonedConnection( c );
                 }
             }
+
         }
         // now check remaining p2 genes if p2 is dominant
         if( gIsDominant ) {
@@ -214,7 +226,7 @@ class Genome {
                 Connection c = p2[inno];
                 offspring.addClonedNode( g.nodes[c.inputNodeId] );
                 offspring.addClonedNode( g.nodes[c.outputNodeId] );                    
-                offspring.addClonedConnection( c );
+                Connection nc = offspring.addClonedConnection( c );
             }
         }
         return offspring;

@@ -14,11 +14,11 @@ void printGenome(Genome g) {
 
 	foreach( n; g.nodes ) {
 		writeln("node: ", n.nodeId, ", type: ", n.type);
-		write("inputs: ");
+		write("  inputs: ");
 		foreach( c; n.input ) {
 			write(g.connections[c].innovation, " ");
 		}
-		write("\noutputs: ");
+		write("\n  outputs: ");
 		foreach( c; n.output ) {
 			write(g.connections[c].innovation, " ");
 		}
@@ -38,14 +38,10 @@ void main()
 
 	//g1.connections[0].innovation++;
 	writeln("\ng2:");
-	foreach( c; g2.connections ) {
-		writeln("net: ", c.innovation, ", i: ", c.inputNodeId, ", o: ", c.outputNodeId );
-	}
-	
+
 	printGenome(g2);
-
+	
+	writeln("\ng3:");
 	Genome g3 = g1.crossOver(g2, false);
-
 	printGenome(g3);
-
 }
