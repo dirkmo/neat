@@ -94,9 +94,49 @@ class Mutation {
     }
 
     static void resetState() {
-
+        addedConnections.length = 0;
     }
 
+    static void mutateAddConnection( Genome g ) {
+        // get two random nodes and connect them
+        uint[] nlist;
+        nlist.length = g.nodes.length;
+        foreach( n; g.nodes.byKey ) {
+            nlist ~= n;
+        }
+        const uint n1 = cast(uint)uniform(0, nlist.length);
+        const uint n2 = cast(uint)uniform(0, nlist.length);
+        foreach(inno; g.nodes[n1].output) {
+            if(g.connections[inno].outputNodeId == n2) {
+                // nodes already connected
+                return;
+            }
+        }
+        foreach(ac; addedConnections) {
+            
+        }
+
+        MutationAddedConnection mutation;
+        if( lookForConnection(g, n1, n2, mutation) ) {
+        hier
+        } else {
+            // add connection
+            Connection newCon = g.addConnection(n1, n2);
+            addedConnections ~= MutationAddedConnection( n1, n2, newCon.innovation );
+        }
+    }
+
+    static bool lookForConnection(Genome g, uint n1, uint n2, ref MutationAddedConnection) {
+        return true;
+    }
+
+    struct MutationAddedConnection {
+        uint startNode;
+        uint endNode;
+        uint innovation;
+    }
+
+    static MutationAddedConnection[] addedConnections;
     private static uint innovation;
 }
 
