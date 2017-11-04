@@ -76,20 +76,26 @@ class NodeGene {
     }
 
     void addInputConnection( uint inno ) {
-        inputCons ~= inno;
+        if( !inputCons.canFind(inno) ) {
+            inputCons ~= inno;
+        }
     }
 
     const(uint[]) getInputCons() { return inputCons; }
     const(uint[]) getOutputCons() { return outputCons; }
 
     void addOutputConnection( uint inno ) {
-        outputCons ~= inno;
+        if( !outputCons.canFind(inno) ) {
+            outputCons ~= inno;
+        }
     }
 
     void setLayer( int layer ) { layerIndex = layer; }
     int  getLayer() { return layerIndex; }
 
     Type getType() { return type; }
+
+    uint getNodeId() { return nodeId; }
 
   private:
     uint nodeId;
@@ -182,6 +188,8 @@ class Genepool {
     ConGene createNewConGene( uint inputNodeId, uint outputNodeId ) {
         ConGene cg = new ConGene( inputNodeId, outputNodeId, innovationCount++ );
         conGenes ~= cg;
+        nodeGenes[inputNodeId].addOutputConnection(cg.getInnovation());
+        nodeGenes[outputNodeId].addInputConnection(cg.getInnovation());
         return cg;
     }
 
@@ -199,7 +207,8 @@ class Genepool {
         do {
             n1 = uniform( 0, cast(uint)nodeGenes.length );
             n2 = uniform( 0, cast(uint)nodeGenes.length );
-            if( !recurrentAllowed && (nodeGenes[n1] >= nodeGenes[n2]) ) {
+            writefln("%s %s", n1, n2);
+            if( !recurrentAllowed && (nodeGenes[n1].getLayer() >= nodeGenes[n2].getLayer()) ) {
                 // connection would be recurrent
                 continue;
             }
@@ -307,7 +316,7 @@ class Genepool {
         return nodeGenes[nodeId];
     }
 
-  private:
+//  private:
     ConGene[] conGenes;
     NodeGene[] nodeGenes;
     uint innovationCount;
