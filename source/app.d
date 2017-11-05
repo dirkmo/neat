@@ -13,12 +13,12 @@ void printGenes(Genepool gp) {
     }
     foreach( ng; gp.nodeGenes ) {
         writefln("nodegene %s: type: %s, layer: %s", ng.getNodeId, ng.getType(), ng.getLayer());
-        writef("  inputs(%s): ", ng.getInputCons().length);
+        writef("  input cons(%s): ", ng.getInputCons().length);
         foreach( ic; ng.getInputCons() ) {
             writef("%s ", ic);
         }
         writeln();
-        writef("  outputs (%s): ", ng.getOutputCons().length);
+        writef("  output cons (%s): ", ng.getOutputCons().length);
         foreach( oc; ng.getOutputCons() ) {
             writef("%s ", oc);
         }
@@ -26,11 +26,24 @@ void printGenes(Genepool gp) {
     }
 }
 
+void printPhenotype( Phenotype p ) {
+    foreach( c; p.cons ) {
+        writefln( "congene %s: start: %s, end: %s, w: %s, %s", c.getConGene().getInnovation(),
+                c.getConGene().getStartNodeId(), c.getConGene().getEndNodeId(), c.getWeight,
+                c.enabled ? "enabled" : "disabled" );
+    }
+}
+
 void main()
 {
     Genepool genepool = new Genepool( 2, 1, true, false );
-    uint old, c1, c2;
-    genepool.mutateSplitUpConGene( old, c1, c2 );
-    writefln("old: %s, c1: %s, c2: %s", old, c1, c2);
-    printGenes( genepool );
+    Phenotype[] pop;
+    foreach( i; 0..1 ) {
+        pop ~= new Phenotype( genepool );
+    }
+    pop[0].mutateWeights(1.0, 1.0);
+    printPhenotype(pop[0]);
+    pop[0].mutateSplitUpConGene(1.0);
+    printPhenotype(pop[0]);
+    
 }

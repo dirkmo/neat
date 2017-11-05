@@ -49,6 +49,11 @@ class ConPhenotype {
         enabled = true;
     }
 
+    this( ConPhenotype cpt ) {
+        this.gene = cpt.gene;
+        this.weight = cpt.weight;
+    }
+
     void mutateWeight( float probability, float strength ) {
         if( uniform(0.0f, 1.0f ) < probability ) {
             weight += strength * uniform(0.0f, 1.0f );
@@ -56,6 +61,8 @@ class ConPhenotype {
     }
 
     const(ConGene) getConGene() { return gene; }
+
+    float getWeight() { return weight; }
 
     bool enabled;
 
@@ -109,6 +116,9 @@ class Phenotype {
 
     this( Genepool pool ) {
         genepool = pool;
+        foreach( c; pool.conGenes ) {
+            cons ~= new ConPhenotype( c );
+        }
     }
 
     /// perform split up mutation of a random connection gene
@@ -117,11 +127,12 @@ class Phenotype {
             uint oldCon, con1, con2;
             genepool.mutateSplitUpConGene( oldCon, con1, con2);
             ConPhenotype ocp = findConPhenotype( oldCon );
-            ConPhenotype cp1 = findConPhenotype( con1 );
-            ConPhenotype cp2 = findConPhenotype( con2 );
+            ConPhenotype cp1 = new ConPhenotype( genepool.getConGene(con1) );
+            ConPhenotype cp2 = new ConPhenotype( genepool.getConGene(con2) );
+            ocp.enabled = false;
             cp1.weight = 1;
             cp2.weight = ocp.weight;
-            ocp.enabled = false;
+            cons ~= [ cp1, cp2 ];
         }
     }
 
@@ -140,14 +151,34 @@ class Phenotype {
     /// mutate weights by probability with strength
     void mutateWeights(float probability, float strength) {
         // go over all connection phenotypes
-        foreach(cp; con) {
+        foreach(cp; cons) {
             cp.mutateWeight(probability, strength);
         }
     }
 
+    /// create an identical copy of this
+    Phenotype clone() {
+        Phenotype newp = new Phenotype(genepool);
+        foreach( c; cons ) {
+            newp.cons ~= new ConPhenotype( c );
+        }
+        return newp;
+    }
+
+    Phenotype crossOver( Phenotype pt ) {
+        // TODO
+        Phenotype offspring = new Phenotype(genepool);
+        foreach( c1; cons ) {
+            if( !(pt.findConPhenotype( c1.getConGene().getInnovation()) is null) ) {
+                // both parents have the gene
+            }
+        }
+        return offspring;
+    }
+
     /// find phenotype of connection gene
     ConPhenotype findConPhenotype( uint inno ) {
-        foreach(p; con) {
+        foreach(p; cons) {
             if( p.getConGene().getInnovation() == inno ) {
                 return p;
             }
@@ -156,7 +187,7 @@ class Phenotype {
     }
 
     Genepool genepool;
-    ConPhenotype[] con;
+    ConPhenotype[] cons;
 }
 
 class Genepool {
