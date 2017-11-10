@@ -1,6 +1,7 @@
 module neat;
 
 import std.algorithm;
+import std.container;
 import std.random;
 import std.stdio;
 
@@ -126,7 +127,8 @@ class Phenotype {
         if( uniform(0.0f, 1.0f) < probability ) {
             uint oldCon, con1, con2;
             genepool.mutateSplitUpConGene( oldCon, con1, con2);
-            ConPhenotype ocp = findConPhenotype( oldCon );
+            ConPhenotype ocp;
+            assert(findConPhenotype( oldCon, ocp ));
             ConPhenotype cp1 = new ConPhenotype( genepool.getConGene(con1) );
             ConPhenotype cp2 = new ConPhenotype( genepool.getConGene(con2) );
             ocp.enabled = false;
@@ -166,24 +168,42 @@ class Phenotype {
     }
 
     Phenotype crossOver( Phenotype pt ) {
-        // TODO
         Phenotype offspring = new Phenotype(genepool);
+        auto p1 = SList!uint();
+        auto p2 = SList!uint();
+        
         foreach( c1; cons ) {
-            if( !(pt.findConPhenotype( c1.getConGene().getInnovation()) is null) ) {
-                // both parents have the gene
+            p1.insertFront(c1.getConGene().getInnovation());
+        }
+        foreach( c2; pt.cons ) {
+            p2.insertFront(c2.getConGene().getInnovation());
+        }
+
+        foreach( i; p1 ) {
+            if( p2[].canFind( i ) ) {
             }
         }
+
+        /*
+        foreach( c1; cons ) {
+            uint inno = c1.getConGene().getInnovation();
+            ConPhenotype cpt;
+            if( pt.findConPhenotype(inno, cpt) ) {
+
+        }
+        */
         return offspring;
     }
 
     /// find phenotype of connection gene
-    ConPhenotype findConPhenotype( uint inno ) {
+    bool findConPhenotype( uint inno, ref ConPhenotype cpt ) {
         foreach(p; cons) {
             if( p.getConGene().getInnovation() == inno ) {
-                return p;
+                cpt = p;
+                return true;
             }
         }
-        return null;
+        return false;
     }
 
     Genepool genepool;
