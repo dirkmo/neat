@@ -3,6 +3,7 @@ module neat;
 import std.algorithm;
 import std.container;
 import std.random;
+import std.range;
 import std.stdio;
 
 /+
@@ -115,10 +116,12 @@ class NodeGene {
 
 class Phenotype {
 
-    this( Genepool pool ) {
+    this( Genepool pool, bool createConPhenotypes ) {
         genepool = pool;
-        foreach( c; pool.conGenes ) {
-            cons ~= new ConPhenotype( c );
+        if( createConPhenotypes ){
+            foreach( c; pool.conGenes ) {
+                cons ~= new ConPhenotype( c );
+            }
         }
     }
 
@@ -160,7 +163,7 @@ class Phenotype {
 
     /// create an identical copy of this
     Phenotype clone() {
-        Phenotype newp = new Phenotype(genepool);
+        Phenotype newp = new Phenotype(genepool, false);
         foreach( c; cons ) {
             newp.cons ~= new ConPhenotype( c );
         }
@@ -168,7 +171,7 @@ class Phenotype {
     }
 
     Phenotype crossOver( Phenotype pt ) {
-        Phenotype offspring = new Phenotype(genepool);
+        Phenotype offspring = new Phenotype(genepool, false);
         auto p1 = SList!uint();
         auto p2 = SList!uint();
         
@@ -178,20 +181,38 @@ class Phenotype {
         foreach( c2; pt.cons ) {
             p2.insertFront(c2.getConGene().getInnovation());
         }
-
+        ConPhenotype cpt;
         foreach( i; p1 ) {
-            if( p2[].canFind( i ) ) {
+            auto range = p2[].find( i );
+            if( !range.empty ) {
+                // both parents have gene
+                writefln("both: %s", i);
+                if( uniform(0.0f, 1.0f) < 0.5f ) {
+                    writeln("  take p1");
+                    if( this.findConPhenotype(i, cpt) ) {
+                        offspring.addConPhenotype(cpt);
+                    }
+                } else {
+                    writeln("  take p2");
+                    if( pt.findConPhenotype(i, cpt) ) {
+                        offspring.addConPhenotype(cpt);
+                    }
+                }
+                p2.linearRemove(range.take(1));
+            } else {
+                // only p1 has the gene
+                writeln("p1: %i");
+                if( this.findConPhenotype(i, cpt) ) {
+                    offspring.addConPhenotype(cpt);
+                }
             }
         }
-
-        /*
-        foreach( c1; cons ) {
-            uint inno = c1.getConGene().getInnovation();
-            ConPhenotype cpt;
-            if( pt.findConPhenotype(inno, cpt) ) {
-
+        foreach( i; p2 ) {
+            // only p2 has the gene            
+            if( pt.findConPhenotype(i, cpt) ) {
+                offspring.addConPhenotype(cpt);
+            }
         }
-        */
         return offspring;
     }
 
@@ -204,6 +225,12 @@ class Phenotype {
             }
         }
         return false;
+    }
+
+    ConPhenotype addConPhenotype( ConPhenotype cpt ) {
+        ConPhenotype newcpt = new ConPhenotype(cpt);
+        cons ~= newcpt;
+        return newcpt;
     }
 
     Genepool genepool;
@@ -253,6 +280,7 @@ class Genepool {
     bool mutateAddNewConGene(ref uint newCon) {
         // choose two random nodes which are not connected
         // and connect them
+        // TODO: evtl. besser nur ein Versuch
         uint retry;
         uint n1, n2;
         do {

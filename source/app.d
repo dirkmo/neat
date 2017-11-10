@@ -38,12 +38,12 @@ void main()
 {
     Genepool genepool = new Genepool( 2, 1, true, false );
     Phenotype[] pop;
-    foreach( i; 0..1 ) {
-        pop ~= new Phenotype( genepool );
+    foreach( i; 0..2 ) {
+        pop ~= new Phenotype( genepool, true );
+        pop[i].mutateWeights( 1.0, 1.0 );
+        printPhenotype(pop[i]);
     }
-    pop[0].mutateWeights(1.0, 1.0);
-    printPhenotype(pop[0]);
-    pop[0].mutateSplitUpConGene(1.0);
-    printPhenotype(pop[0]);
-    
+
+    Phenotype child = pop[0].crossOver( pop[1] );
+    printPhenotype(child);    
 }
