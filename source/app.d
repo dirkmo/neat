@@ -39,11 +39,16 @@ void main()
     Genepool genepool = new Genepool( 2, 1, true, false );
     Phenotype[] pop;
     foreach( i; 0..2 ) {
+        writeln("pt ", i);
         pop ~= new Phenotype( genepool, true );
         pop[i].mutateWeights( 1.0, 1.0 );
         printPhenotype(pop[i]);
     }
 
-    Phenotype child = pop[0].crossOver( pop[1] );
-    printPhenotype(child);    
+    writeln("Nach mutation:");
+    foreach(pt; pop) {
+        pt.mutateSplitUpConGene(1.0);        
+        printPhenotype(pt);
+        writeln();
+    }
 }
