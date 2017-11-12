@@ -45,9 +45,14 @@ void main()
         printPhenotype(pop[i]);
     }
 
-    writeln("Nach mutation:");
     foreach(pt; pop) {
         pt.mutateSplitUpConGene(1.0);        
+        printPhenotype(pt);
+        writeln();
+    }
+
+    foreach(pt; pop) {
+        pt.mutateAddConPhenotype(1.0);        
         printPhenotype(pt);
         writeln();
     }

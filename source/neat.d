@@ -126,8 +126,9 @@ class Phenotype {
         refreshNodesList();
     }
 
-    /// perform split up mutation of a random connection gene
+    /// perform split up mutation of a random connection phenotype
     void mutateSplitUpConGene(float probability) {
+        writeln(__FUNCTION__);
         if( uniform(0.0f, 1.0f) < probability ) {
             uint oldCon = uniform(0, cast(uint)cons.length);
             if( !cons[oldCon].enabled ) {
@@ -154,13 +155,15 @@ class Phenotype {
     }
 
     void mutateAddConPhenotype(float probability) {
+        writeln(__FUNCTION__);
         if( uniform(0.0f, 1.0f) < probability ) {
             // choose two random nodes which are not connected
             // and connect them
-            uint n1 = cast(uint)uniform(0, nodes.length);
-            uint n2 = cast(uint)uniform(0, nodes.length);
+            immutable n1 = nodes[uniform(0, nodes.length)];
+            immutable n2 = nodes[uniform(0, nodes.length)];
             if( nodesAreConnected(n1, n2) ) {
                 // already connected in phenotype
+                writefln("nodes %s and %s already connected.", n1, n2);
                 return;
             }
             uint newCon;
@@ -170,6 +173,7 @@ class Phenotype {
                 const ConGene cg = genepool.getConGene(newCon);
                 // create a phenotype fron ConGene
                 ConPhenotype cp = new ConPhenotype(cg);
+                cons ~= cp;
             }
         }
     }
@@ -256,7 +260,7 @@ class Phenotype {
     }
 
     bool nodesAreConnected( uint n1, uint n2) {
-        // doesn't account for recurrent connections
+        // doesn't account for backward connection
         foreach(cpt; cons) {
             const ConGene cg = cpt.getConGene();
             if( cg.getStartNodeId() == n1 && cg.getEndNodeId() == n2 ) {
@@ -282,7 +286,7 @@ class Phenotype {
     
     Genepool genepool;
     ConPhenotype[] cons;
-    uint[] nodes;
+    uint[] nodes; // holds node gene ids 
 }
 
 class Genepool {
@@ -322,27 +326,42 @@ class Genepool {
     uint createNewHiddenNode() {
         auto newNode = new NodeGene(cast(uint)nodeGenes.length, NodeGene.Type.hidden );
         nodeGenes ~= newNode;
+        nodeAdded = true;
         return newNode.nodeId;
     }
 
-    bool mutateAddNewConGene(uint n1, uint n2, out uint newCon) {
-        if( addedConGenes.canFind(newCon) ) {
-
-            return true;
+    /// add ConGene connection from n1 to n2 to genepool. newCon will hold the genes
+    /// innovation number.
+    /// if n1 and n2 are connected, the inno number of that connection will be returned.
+    /// returns false, if connection would be recurrent and recurrent nets are disabled.
+    bool mutateAddNewConGene(in uint n1, in uint n2, out uint newCon) {
+        writeln(__FUNCTION__);
+        if( nodeAdded ) {
+            updateNodesLayerIndex(null, 0);
         }
-        if( !recurrentAllowed && (nodeGenes[n1].getLayer() >= nodeGenes[n2].getLayer()) ) {
-            // connection would be recurrent
-            return false;
+        writefln("node %s (layer %s) to %s (layer %s):", n1, nodeGenes[n1].getLayer(),
+                    n2, nodeGenes[n2].getLayer());
+
+        if( !recurrentAllowed ) {
+            if( nodeGenes[n1].getLayer() >= nodeGenes[n2].getLayer() ) {
+                // connection would be recurrent
+                writefln("Abort, connection would be recurrent." );
+                return false;
+            }
         }
         if( nodesAreConnected(n1, n2, newCon) ) {
-            return false;
+            // nodes are already connected.
+            writefln("Connection gene %s already there", newCon);
+            return true;
         }
+        // create new connection gene
         newCon = createNewConGene(n1, n2).getInnovation();
-        addedConGenes ~= newCon; // save mutation
+        writefln("Creating new congene %s", newCon);
         return true;
     }
 
-    void mutateSplitUpConGene( uint oldCon, ref uint con1, ref uint con2) {
+    void mutateSplitUpConGene( in uint oldCon, out uint con1, out uint con2) {
+        writeln(__FUNCTION__);
         if( oldCon in splitUpConGenes ) {
             // connection gene has already been split up
             auto mutation = splitUpConGenes[oldCon];
@@ -362,7 +381,7 @@ class Genepool {
         }
     }
 
-    bool nodesAreConnected( uint n1, uint n2, ref uint con ) {
+    bool nodesAreConnected( in uint n1, in uint n2, out uint con ) {
         auto ocons = nodeGenes[n1].outputCons;
         foreach( oc; ocons ) {
             if( oc == n2 ) {
@@ -406,7 +425,10 @@ class Genepool {
                     nodeGenes[getOutputNodeId(o)].setLayer(layerNumber);
                 }
                 // recursion is done here
-                // TODO: sanity check: es dürfen keine nodes mehr mit layer=-1 übrig sein.
+                // sanity check: there shall be no nodes left with layer=-1
+                foreach(n; nodeGenes) {
+                    assert( n.getLayer() > -1 );
+                }
             } else {
                 NodeGene[] list;
                 foreach(n; layerNodes) {
@@ -425,6 +447,7 @@ class Genepool {
                 updateNodesLayerIndex( list, layerNumber + 1 );
             }
         }
+        nodeAdded = false;
     }
 
     uint getInputNodeId( uint i ) {
@@ -449,12 +472,14 @@ class Genepool {
 
     void resetMutationMemory() {
         splitUpConGenes.clear();
-        addedConGenes.length = 0;
     }
 
 //  private:
     ConGene[] conGenes;
     NodeGene[] nodeGenes;
+
+    bool nodeAdded;
+
     uint innovationCount;
     bool recurrentAllowed;
     uint inputs;
@@ -466,5 +491,4 @@ class Genepool {
     }
 
     SplitUpConGeneMutation[uint] splitUpConGenes; // con genes, that have been split up
-    uint[] addedConGenes; // con genes, that have been added
 }
