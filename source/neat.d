@@ -283,6 +283,8 @@ class Phenotype {
             }
         }
     }
+
+    uint getNodeCount() { return cast(uint)nodes.length; }
     
     Genepool genepool;
     ConPhenotype[] cons;
@@ -474,6 +476,11 @@ class Genepool {
         splitUpConGenes.clear();
     }
 
+    bool isRecurrent() { return recurrentAllowed; }
+
+    uint getNodeCount() { return cast(uint)nodeGenes.length; }
+    uint getConGeneCount() { return cast(uint)conGenes.length; }
+
 //  private:
     ConGene[] conGenes;
     NodeGene[] nodeGenes;
@@ -491,4 +498,57 @@ class Genepool {
     }
 
     SplitUpConGeneMutation[uint] splitUpConGenes; // con genes, that have been split up
+}
+
+class Individual : Phenotype {
+    this( Genepool pool, bool createConPhenotypes ) {
+        super( pool, createConPhenotypes );
+        nodeValues.length = pool.getNodeCount();
+        updateConValues();
+    }
+
+    void updateConValues() {
+        conValues.length = genepool.getConGeneCount();
+        foreach( cpt; cons ) {
+            conValues[cpt.getConGene().getInnovation()] = cpt.getWeight();
+        }
+    }
+
+    float[] propagateStep( float[] inputs ) {
+        float[] newValues;
+        newValues.length = nodeValues.length;
+        foreach(c; cons) {
+
+        }
+        return [];
+    }
+
+    float[] propagate( float[] inputs ) {
+        return [];
+    }
+
+    void mutate( float probability, float strength ) {
+    }
+    
+    float[] nodeValues; // index is node id
+    float[] conValues; // index is innovation number
+}
+
+class Population {
+    this( uint popsize, uint inputs, uint outputs, bool recurrent ) {
+        genepool = new Genepool(
+            inputs, outputs,
+            true /*fullyConnected*/,
+            false /*enableRecurrentNets*/
+        );
+        pop.length = popsize;
+        foreach( ref p; pop ) {
+            p = new Individual( genepool, true /*createConPhenotype*/ );
+        }
+    }
+    
+    private:
+
+    Genepool genepool;
+    Individual[] pop;
 }
