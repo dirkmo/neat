@@ -481,6 +481,9 @@ class Genepool {
     uint getNodeCount() { return cast(uint)nodeGenes.length; }
     uint getConGeneCount() { return cast(uint)conGenes.length; }
 
+    uint getInputNodeCount() { return inputs; }
+    uint getOutputNodeCount() { return outputs; }
+
 //  private:
     ConGene[] conGenes;
     NodeGene[] nodeGenes;
@@ -514,13 +517,30 @@ class Individual : Phenotype {
         }
     }
 
-    float[] propagateStep( float[] inputs ) {
+    const(float)[] propagateStep( const float[] inputs ) {
         float[] newValues;
         newValues.length = nodeValues.length;
+        // copy input values
+        const uint i1 = genepool.getInputNodeId( 0 );
+        const uint i2 = genepool.getInputNodeId( genepool.getInputNodeCount() );
+        assert( i2-i1 == inputs.length );
+        newValues[i1..i2] = inputs[];
+        // set hidden and output neurons to 0.0f
+        newValues[i2..$] = 0.0f;
         foreach(c; cons) {
-
+            if( c.enabled ) {
+                const(ConGene) cg = c.getConGene();
+                const uint n1 = cg.getStartNodeId();
+                const uint n2 = cg.getEndNodeId();
+                const float w = c.getWeight();
+                newValues[n2] += nodeValues[n1] * w;
+            }
         }
-        return [];
+        nodeValues = newValues;
+        // return output values
+        uint o1 = genepool.getOutputNodeId( 0 );
+        uint o2 = genepool.getOutputNodeId( genepool.getOutputNodeCount() );
+        return nodeValues[o1..o2];
     }
 
     float[] propagate( float[] inputs ) {
