@@ -2,22 +2,10 @@ module neat;
 
 import std.algorithm;
 import std.container;
+import std.math;
 import std.random;
 import std.range;
 import std.stdio;
-
-/+
-Idee für Recurrent Networks:
-
-Propagieren ist völlig Schichtunabhängig.
-Es wird zwischen jeder vollständigen Propagierung der Zustand aller Nodes gespeichert.
-ist an einem Node Ni ein rekurrentes Netz als Input angeschlossen, so wird der input des Netzes
-aus der Aktivierung des Nodes Na der vorherigen Propagierung (Zeit t-1) verwendet.
-
-Ni(t) += Na(t-1) * recurrent-net-weight
-+/
-
-
 
 class ConGene {
     @disable this();
@@ -90,8 +78,8 @@ class NodeGene {
         }
     }
 
-    const(uint[]) getInputCons() { return inputCons; }
-    const(uint[]) getOutputCons() { return outputCons; }
+    const(uint[]) getInputCons() const { return inputCons; }
+    const(uint[]) getOutputCons() const { return outputCons; }
 
     void addOutputConnection( uint inno ) {
         if( !outputCons.canFind(inno) ) {
@@ -100,11 +88,11 @@ class NodeGene {
     }
 
     void setLayer( int layer ) { layerIndex = layer; }
-    int  getLayer() { return layerIndex; }
+    int  getLayer() const { return layerIndex; }
 
-    Type getType() { return type; }
+    Type getType() const { return type; }
 
-    uint getNodeId() { return nodeId; }
+    uint getNodeId() const { return nodeId; }
 
   private:
     uint nodeId;
@@ -484,6 +472,13 @@ class Genepool {
     uint getInputNodeCount() { return inputs; }
     uint getOutputNodeCount() { return outputs; }
 
+    uint getLayerCount() {
+        if( nodeAdded ) {
+            updateNodesLayerIndex( null, 0 );
+        }
+        return getNodeGene(getOutputNodeId(0)).getLayer() + 1;
+    }
+
 //  private:
     ConGene[] conGenes;
     NodeGene[] nodeGenes;
@@ -507,6 +502,7 @@ class Individual : Phenotype {
     this( Genepool pool, bool createConPhenotypes ) {
         super( pool, createConPhenotypes );
         nodeValues.length = pool.getNodeCount();
+        nodeValues[] = 0.0f;
         updateConValues();
     }
 
@@ -517,12 +513,20 @@ class Individual : Phenotype {
         }
     }
 
+    float sigmoid( float x ) {
+        return 1.0f / ( 1.0f + exp(-x) );
+    }
+
+
     const(float)[] propagateStep( const float[] inputs ) {
+        if( nodeValues.length !=  genepool.getNodeCount() ) {
+            //nodesValues.length = 
+        }
         float[] newValues;
         newValues.length = nodeValues.length;
         // copy input values
         const uint i1 = genepool.getInputNodeId( 0 );
-        const uint i2 = genepool.getInputNodeId( genepool.getInputNodeCount() );
+        const uint i2 = genepool.getInputNodeId( genepool.getInputNodeCount() - 1 ) + 1;
         assert( i2-i1 == inputs.length );
         newValues[i1..i2] = inputs[];
         // set hidden and output neurons to 0.0f
@@ -533,21 +537,34 @@ class Individual : Phenotype {
                 const uint n1 = cg.getStartNodeId();
                 const uint n2 = cg.getEndNodeId();
                 const float w = c.getWeight();
-                newValues[n2] += nodeValues[n1] * w;
+                writefln("n1=%s, n2=%s", n1, n2 );
+                writefln("n1: %s, n2: %s, w: %s, sig: %s", nodeValues[n1], nodeValues[n2], w, sigmoid(nodeValues[n1]) );
+                newValues[n2] += sigmoid( nodeValues[n1] ) * w;
             }
         }
         nodeValues = newValues;
         // return output values
         uint o1 = genepool.getOutputNodeId( 0 );
-        uint o2 = genepool.getOutputNodeId( genepool.getOutputNodeCount() );
+        uint o2 = genepool.getOutputNodeId( genepool.getOutputNodeCount() - 1 ) + 1;
         return nodeValues[o1..o2];
     }
 
-    float[] propagate( float[] inputs ) {
+    const(float)[] propagate( float[] inputs ) {
+        assert( !genepool.isRecurrent() );
+        SList!(uint)[] layers;
+        layers.length = genepool.getLayerCount();
+        foreach(c; cons) {
+            auto cg = c.getConGene();
+            uint nodeId = cg.getEndNodeId();
+            uint l = genepool.getNodeGene(nodeId).getLayer();
+            sortedInsert(layers[l], nodeId);
+        }
         return [];
     }
 
-    void mutate( float probability, float strength ) {
+    void sortedInsert( SList!(uint) list, uint nodeId ) {
+        foreach( l; list[] ) {
+        }
     }
     
     float[] nodeValues; // index is node id

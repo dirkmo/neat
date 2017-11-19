@@ -3,10 +3,6 @@ import std.math;
 import std.random;
 import std.stdio;
 
-float sigmoid( float x ) {
-    return 1.0f / ( 1.0f + exp(-x) );
-}
-
 void printGenes(Genepool gp) {
     foreach( cg; gp.conGenes ) {
         writefln( "congene %s: start: %s, end: %s", cg.getInnovation(), cg.getStartNodeId(), cg.getEndNodeId() );
@@ -37,23 +33,20 @@ void printPhenotype( Phenotype p ) {
 void main()
 {
     Genepool genepool = new Genepool( 2, 1, true, false );
-    Phenotype[] pop;
-    foreach( i; 0..2 ) {
+    Individual[] ind;
+    foreach( i; 0..1 ) {
         writeln("pt ", i);
-        pop ~= new Phenotype( genepool, true );
-        pop[i].mutateWeights( 1.0, 1.0 );
-        printPhenotype(pop[i]);
+        ind ~= new Individual( genepool, true );
+        ind[i].mutateWeights( 1.0, 1.0 );
+        foreach(abc ; 0..3) {
+            ind[i].mutateSplitUpConGene( 1.0f );
+        }
+        printPhenotype(ind[i]);
     }
 
-    foreach(pt; pop) {
-        pt.mutateSplitUpConGene(1.0);        
-        printPhenotype(pt);
-        writeln();
-    }
-
-    foreach(pt; pop) {
-        pt.mutateAddConPhenotype(1.0);        
-        printPhenotype(pt);
-        writeln();
+    float[] input = [0.0f, 0.0f];
+    auto output = ind[0].propagateStep( input );
+    foreach(o; output) {
+        writefln("Output: %s", o);
     }
 }
