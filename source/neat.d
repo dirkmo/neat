@@ -1,5 +1,6 @@
 module neat;
 
+import std.algorithm.comparison;
 import std.algorithm;
 import std.container;
 import std.math;
@@ -273,7 +274,8 @@ class Phenotype {
     }
 
     uint getNodeCount() { return cast(uint)nodes.length; }
-    
+
+    //protected:
     Genepool genepool;
     ConPhenotype[] cons;
     uint[] nodes; // holds node gene ids 
@@ -517,10 +519,14 @@ class Individual : Phenotype {
         return 1.0f / ( 1.0f + exp(-x) );
     }
 
-
     const(float)[] propagateStep( const float[] inputs ) {
         if( nodeValues.length !=  genepool.getNodeCount() ) {
-            //nodesValues.length = 
+            // genepool mutated. adding new nodes with value 0
+            assert( nodeValues.length < genepool.getNodeCount() );
+            float[] newNodes;
+            newNodes.length = genepool.getNodeCount() - nodeValues.length;
+            newNodes[] = 0.0f;
+            nodeValues ~= newNodes;
         }
         float[] newValues;
         newValues.length = nodeValues.length;
@@ -551,20 +557,54 @@ class Individual : Phenotype {
 
     const(float)[] propagate( float[] inputs ) {
         assert( !genepool.isRecurrent() );
-        SList!(uint)[] layers;
+        // TODO: dies in eigene Funktion auslagern. Muss auch nur gemacht
+        // werden, wenn sich nodes[] geändert hat
+        // setting up layer structure
+        DList!(uint)[] layers;
         layers.length = genepool.getLayerCount();
+        foreach(n; 0..genepool.getInputNodeCount()) {
+            layers[0].insert(genepool.getInputNodeId(n));
+        }
         foreach(c; cons) {
             auto cg = c.getConGene();
             uint nodeId = cg.getEndNodeId();
             uint l = genepool.getNodeGene(nodeId).getLayer();
             sortedInsert(layers[l], nodeId);
         }
-        return [];
+        // now start propagating
+        // copy input values
+        const uint i1 = genepool.getInputNodeId( 0 );
+        const uint i2 = genepool.getInputNodeId( genepool.getInputNodeCount() - 1 ) + 1;
+        assert( i2-i1 == inputs.length );
+        nodeValues[i1..i2] = inputs[];
+        nodeValues[i2..$] = 0.0f;
+        foreach( l; layers ) {
+            // loop over all nodes in layer
+            foreach( nid; l ) {
+                // loop over all outgoing connections of node
+
+            }
+
+        }
+
+        // return output values
+        uint o1 = genepool.getOutputNodeId( 0 );
+        uint o2 = genepool.getOutputNodeId( genepool.getOutputNodeCount() - 1 ) + 1;
+        return nodeValues[o1..o2];
     }
 
-    void sortedInsert( SList!(uint) list, uint nodeId ) {
-        foreach( l; list[] ) {
+    void sortedInsert( ref DList!(uint) list, uint nodeId ) {
+        auto range = list[];
+        while( !range.empty() ) {
+            if( range.front == nodeId )
+                return;
+            if( range.front > nodeId ) {
+                list.insertBefore( range, [nodeId] );
+                return;
+            }
+            range.popFront();
         }
+        list.insertBack( nodeId );
     }
     
     float[] nodeValues; // index is node id

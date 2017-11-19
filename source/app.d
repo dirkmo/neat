@@ -2,6 +2,10 @@ import neat;
 import std.math;
 import std.random;
 import std.stdio;
+import std.container;
+import std.algorithm;
+import std.range;
+
 
 void printGenes(Genepool gp) {
     foreach( cg; gp.conGenes ) {
@@ -38,14 +42,14 @@ void main()
         writeln("pt ", i);
         ind ~= new Individual( genepool, true );
         ind[i].mutateWeights( 1.0, 1.0 );
-        foreach(abc ; 0..3) {
+        foreach(abc ; 0..10) {
             ind[i].mutateSplitUpConGene( 1.0f );
         }
         printPhenotype(ind[i]);
     }
 
     float[] input = [0.0f, 0.0f];
-    auto output = ind[0].propagateStep( input );
+    auto output = ind[0].propagate( input );
     foreach(o; output) {
         writefln("Output: %s", o);
     }
