@@ -73,14 +73,14 @@ class NodeGene {
         }
     }
 
+    const(uint[]) getInputCons() const { return inputCons; }
+    const(uint[]) getOutputCons() const { return outputCons; }
+
     void addInputConnection( uint inno ) {
         if( !inputCons.canFind(inno) ) {
             inputCons ~= inno;
         }
     }
-
-    const(uint[]) getInputCons() const { return inputCons; }
-    const(uint[]) getOutputCons() const { return outputCons; }
 
     void addOutputConnection( uint inno ) {
         if( !outputCons.canFind(inno) ) {
@@ -99,6 +99,38 @@ class NodeGene {
     uint nodeId;
     Type type;
     int layerIndex = -1;
+    uint[] inputCons;
+    uint[] outputCons;
+}
+
+class NodePhenotype {
+    this( NodeGene gene ) {
+        this.gene = gene;
+    }
+
+    this( Genepool pool, uint nodeId ){
+        this.gene = pool.getNodeGene(nodeId);
+    }
+
+    const(uint[]) getInputCons() const { return inputCons; }
+    const(uint[]) getOutputCons() const { return outputCons; }
+    
+    void addInputConnection( uint inno ) {
+        if( !inputCons.canFind(inno) ) {
+            inputCons ~= inno;
+        }
+    }
+
+    void addOutputConnection( uint inno ) {
+        if( !outputCons.canFind(inno) ) {
+            outputCons ~= inno;
+        }
+    }
+
+    const(NodeGene) getNodeGene() { return gene; }
+
+  private:
+    const NodeGene gene;
     uint[] inputCons;
     uint[] outputCons;
 }
@@ -138,7 +170,7 @@ class Phenotype {
             cp2.weight = ocp.weight;
             cons ~= [ cp1, cp2 ];
             // add new node to nodes list
-            nodes ~= cp1.getConGene().getEndNodeId();
+            nodes ~= new NodePhenotype(genepool, cp1.getConGene().getEndNodeId());
             writefln("oldcon: %s, cp1: %s, cp2: %s", oldConInno, con1inno, con2inno);
         }
     }
@@ -148,8 +180,8 @@ class Phenotype {
         if( uniform(0.0f, 1.0f) < probability ) {
             // choose two random nodes which are not connected
             // and connect them
-            immutable n1 = nodes[uniform(0, nodes.length)];
-            immutable n2 = nodes[uniform(0, nodes.length)];
+            immutable n1 = nodes[uniform(0, nodes.length)].getNodeGene().getNodeId();
+            immutable n2 = nodes[uniform(0, nodes.length)].getNodeGene().getNodeId();
             if( nodesAreConnected(n1, n2) ) {
                 // already connected in phenotype
                 writefln("nodes %s and %s already connected.", n1, n2);
@@ -278,7 +310,7 @@ class Phenotype {
     //protected:
     Genepool genepool;
     ConPhenotype[] cons;
-    uint[] nodes; // holds node gene ids 
+    NodePhenotype[] nodes;
 }
 
 class Genepool {
