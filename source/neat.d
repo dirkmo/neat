@@ -52,6 +52,7 @@ class ConPhenotype {
     }
 
     const(ConGene) getConGene() { return gene; }
+    uint getInnovation() { return gene.getInnovation(); }
 
     float getWeight() { return weight; }
 
@@ -112,8 +113,8 @@ class NodePhenotype {
         this.gene = pool.getNodeGene(nodeId);
     }
 
-    const(uint[]) getInputCons() const { return inputCons; }
-    const(uint[]) getOutputCons() const { return outputCons; }
+    const(ConPhenotype[]) getInputCons() const { return inputCons; }
+    const(ConPhenotype[]) getOutputCons() const { return outputCons; }
     
     void addInputConnection( uint inno ) {
         if( !inputCons.canFind(inno) ) {
@@ -128,11 +129,12 @@ class NodePhenotype {
     }
 
     const(NodeGene) getNodeGene() { return gene; }
+    uint getNodeId() { return gene.getNodeId(); }
 
   private:
     const NodeGene gene;
-    uint[] inputCons;
-    uint[] outputCons;
+    ConPhenotype[] inputCons;
+    ConPhenotype[] outputCons;
 }
 
 class Phenotype {
@@ -296,6 +298,10 @@ class Phenotype {
         foreach( c; cons ) {
             uint n1 = c.getConGene().getStartNodeId();
             uint n2 = c.getConGene().getEndNodeId();
+            
+            if( filter!(a => a.getNodeId() == n1 )(nodes[]).empty) {
+            }
+
             if( !nodes.canFind(n1) ) {
                 nodes ~= n1;
             }
