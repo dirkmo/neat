@@ -4,6 +4,7 @@ import neat.connection;
 import neat.node;
 
 import std.algorithm;
+import std.stdio;
 
 ///
 class Genepool {
@@ -85,12 +86,78 @@ class Genepool {
                 updateNodesLayerIndex( list, layerIndex + 1 );
             }
         }
+        nodeAdded = false;
+    }
+
+    ///
+    NodeGene createNewNodeGene() {
+        auto newNode = new NodeGene(NodeGene.Type.hidden);
+        nodeGenes ~= newNode;
+        nodeAdded = true;
+        return newNode;
+    }
+
+    ///
+    bool mutateAddNewConGene( NodeGene n1, NodeGene n2, out ConGene newCon ) {
+        writeln(__FUNCTION__);
+        if( nodeAdded ) {
+            updateNodesLayerIndex(null, 0);
+        }
+        
+        if( !recurrent && n1.layerIndex >= n2.layerIndex ) {
+            // connection would be recurrent
+            writefln("Abort, connection would be recurrent." );
+            return false;
+        }
+
+        if( n1.isInputToNode(n2, newCon) ) {
+            // nodes are already connected.
+            writefln("Connection gene %s already there", newCon);
+            return true;
+        }
+        // create new connection gene
+        newCon = new ConGene(n1, n2);
+        writefln("Creating new congene %s", newCon);
+        return true;
+    }
+
+    ///
+    void mutateSplitUpConGene( ConGene oldCon, out ConGene con1, out ConGene con2 ) {
+        writeln(__FUNCTION__);
+        if( oldCon.innovation in splitUpConGenes ) {
+            auto mutation = splitUpConGenes[oldCon.innovation];
+            con1 = mutation.con1;
+            con2 = mutation.con2;
+            writefln("mutation already in genepool. Reusing con1: %s, con2: %s", con1, con2);
+        } else {
+            // split up connection gene
+            NodeGene n1 = oldCon.start();
+            NodeGene n2 = oldCon.end();
+            // create new node
+            NodeGene n3 = createNewNodeGene();
+            // add connections for n1 --> n3 --> n2
+            con1 = new ConGene(n1, n3);
+            con2 = new ConGene(n3, n2);
+            splitUpConGenes[oldCon.innovation] = SplitUpConGeneMutation(con1, con2);
+        }
+    }
+
+    const(ConGene)[] getConGenes() const {
+        return conGenes;
     }
 
 private:
     uint inputs;
     uint outputs;
     bool recurrent;
+    bool nodeAdded;
+
+    struct SplitUpConGeneMutation {
+        ConGene con1;
+        ConGene con2;
+    }
+
+    SplitUpConGeneMutation[uint] splitUpConGenes; // con genes, that have been split up
 
     NodeGene[] nodeGenes;
     ConGene[] conGenes;

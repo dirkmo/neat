@@ -2,6 +2,8 @@ module neat.node;
 
 import neat.connection;
 
+import std.algorithm;
+
 ///
 class NodeGene {
     ///
@@ -29,6 +31,16 @@ class NodeGene {
     
     ///
     ConGene[] getOutputConGenes() { return outputs; }
+
+    ///
+    bool isInputToNode( NodeGene ng, out ConGene con ) {
+        auto icg = outputs.find!( cg => cg.end().id == ng.id )();
+        if( icg.length >0 ) {
+            con = icg[0];
+            return true;
+        }
+        return false;
+    }
 
     ///
     uint id() const @property { return _id; }

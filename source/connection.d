@@ -3,6 +3,7 @@ module neat.connection;
 import neat.node;
 
 import std.random;
+import std.string;
 
 ///
 class ConGene {
@@ -17,8 +18,12 @@ class ConGene {
     NodeGene start()  { return _startNode; }
     ///
     NodeGene end()    { return _endNode; }
-    
+
     uint innovation()        const @property { return _innovation; }
+
+    override string toString() const {
+        return format( "%s", _innovation );
+    }
 
 private:
     uint _innovation;
