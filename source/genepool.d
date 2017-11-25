@@ -142,7 +142,7 @@ class Genepool {
         }
     }
 
-    const(ConGene)[] getConGenes() const {
+    ConGene[] getConGenes() {
         return conGenes;
     }
 

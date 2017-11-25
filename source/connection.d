@@ -19,7 +19,7 @@ class ConGene {
     ///
     NodeGene end()    { return _endNode; }
 
-    uint innovation()        const @property { return _innovation; }
+    uint innovation() const @property { return _innovation; }
 
     override string toString() const {
         return format( "%s", _innovation );
@@ -37,29 +37,30 @@ private:
 class Connection {
     ///
     this( ConGene gene, Node input, Node output ) {
-        this.gene = gene;
+        _gene = gene;
         _weight = uniform( -1.0f, 1.0f );
         enabled = true;
     }
 
     ///
     this( Connection con, Node input, Node output ) {
-        this.gene = con.gene;
+        _gene = con.gene;
         _weight = con.weight();
         enabled = con.enabled;
         _input = input;
         _output = output;
     }
 
-    const(Node) input()  const @property { return _input; }
-    const(Node) output() const @property { return _output; }
+    Node input()  @property { return _input; }
+    Node output() @property { return _output; }
+    ConGene gene() @property { return _gene; }
     float weight()    const @property { return _weight; }
-    uint innovation() const @property { return gene.innovation; }
-
+    uint innovation() const @property { return _gene.innovation; }
+    
     bool enabled;
 
 private:
-    ConGene gene;
+    ConGene _gene;
     Node _input;
     Node _output;
 

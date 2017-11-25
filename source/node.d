@@ -78,7 +78,8 @@ class Node {
         outputs ~= output;
     }
 
-    const(NodeGene) gene() const @property { return _gene; }
+    NodeGene gene() @property { return _gene; }
+    uint id() const @property { return _gene.id; }
 
 private:
     NodeGene _gene;
