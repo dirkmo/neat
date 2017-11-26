@@ -96,6 +96,9 @@ class Node {
 
     NodeGene gene() @property { return _gene; }
     uint id() const @property { return _gene.id; }
+    int layerIndex() const @property { return _gene.layerIndex; }
+    Connection[] getInputConnections() { return _inputs; }
+    Connection[] getOutputConnections() { return _outputs; }
 
     ///
     override string toString() const {

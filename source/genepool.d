@@ -86,6 +86,7 @@ class Genepool {
                 updateNodesLayerIndex( list, layerIndex + 1 );
             }
         }
+        layerCount = layerIndex + 1;
         nodeAdded = false;
     }
 
@@ -142,19 +143,23 @@ class Genepool {
         }
     }
 
-    ConGene[] getConGenes() {
-        return conGenes;
+    void resetMutationList() {
+        splitUpConGenes.clear();
     }
 
+    ConGene[] getConGenes() { return conGenes; }
     uint getNodeCount() const { return cast(uint)nodeGenes.length; }
 
     uint inputs() const @property { return _inputs; }
     uint outputs() const @property { return _outputs; }
+    bool isRecurrent() const { return recurrent; }
+    uint getLayerCount() const { return layerCount; }
 
 private:
     uint _inputs;
     uint _outputs;
     bool recurrent;
+    uint layerCount;
     bool nodeAdded;
 
     struct SplitUpConGeneMutation {
