@@ -25,7 +25,8 @@ class Genepool {
             auto outputNodes = nodeGenes.filter!(n=>n.type == NodeGene.Type.output)();
             foreach( i; inputNodes ) {
                 foreach( o; outputNodes ) {
-                    conGenes ~= new ConGene(i, o);
+                    auto con = new ConGene(i, o);
+                    conGenes ~= con;
                 }
             }
         }
@@ -118,6 +119,7 @@ class Genepool {
         }
         // create new connection gene
         newCon = new ConGene(n1, n2);
+        conGenes ~= newCon;
         writefln("Creating new congene %s", newCon);
         return true;
     }
@@ -139,6 +141,7 @@ class Genepool {
             // add connections for n1 --> n3 --> n2
             con1 = new ConGene(n1, n3);
             con2 = new ConGene(n3, n2);
+            conGenes ~= [con1, con2];
             splitUpConGenes[oldCon.innovation] = SplitUpConGeneMutation(con1, con2);
         }
     }
@@ -155,7 +158,7 @@ class Genepool {
     bool isRecurrent() const { return recurrent; }
     uint getLayerCount() const { return layerCount; }
 
-private:
+//private:
     uint _inputs;
     uint _outputs;
     bool recurrent;

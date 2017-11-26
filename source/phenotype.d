@@ -14,11 +14,8 @@ class Phenotype {
     this( Genepool pool, bool createConnections ) {
         this.pool = pool;
         if( createConnections ) {
-            foreach( c; pool.getConGenes() ) {
-                auto n1 = new Node(c.start());
-                auto n2 = new Node(c.end());
-                cons ~= new Connection(c, n1, n2);
-                nodes ~= [n1, n2];
+            foreach( cg; pool.getConGenes() ) {
+                addConnectionFromGenes(cg, cg.start, cg.end);
             }
         }
     }
@@ -49,46 +46,35 @@ class Phenotype {
         return newp;
     }
 
-    /// perform split up mutation of a random connection
-    void mutateSplitUpConGene(float probability) {
+    /// perform split up mutation
+    void mutateSplitUpConnection(Connection con) {
         writeln(__FUNCTION__);
-        if( uniform(0.0f, 1.0f) > probability ) {
-            return;
-        }
-        auto oldcon = cons[uniform(0,$)];
-        if( !oldcon.enabled ) {
+        if( !con.enabled ) {
             // gene is disabled, is already split up
             return;
         }
         ConGene cg1, cg2;
-        pool.mutateSplitUpConGene(oldcon.gene, cg1, cg2);
+        pool.mutateSplitUpConGene(con.gene, cg1, cg2);
         // disable old connection
-        oldcon.enabled = false;
+        con.enabled = false;
         auto ng = cg1.end;
         assert( !nodes.canFind!(n=>(n.id==ng.id))() );
         // add new node
         auto n3 = new Node(ng);
         nodes ~= n3;
         // add new connections
-        auto n1 = oldcon.start;
-        auto n2 = oldcon.end;
+        auto n1 = con.start;
+        auto n2 = con.end;
         auto c1 = new Connection( cg1, n1, n3 );
         auto c2 = new Connection( cg2, n3, n2 );
         cons ~= [c1, c2];
         c1.setWeight(1);
-        c2.setWeight(oldcon.weight);
+        c2.setWeight(con.weight);
     }
 
     ///
-    void mutateAddConPhenotype(float probability) {
+    void mutateAddConnection(Node n1, Node n2) {
         writeln(__FUNCTION__);
-        if( uniform(0.0f, 1.0f) > probability ) {
-            return;
-        }
-        // choose two random nodes which are not connected
-        // and connect them
-        auto n1 = nodes[uniform(0,$)];
-        auto n2 = nodes[uniform(0,$)];
         Connection con;
         if( n1.isInputToNode( n2, con ) ) {
             // nodes already connected
@@ -146,14 +132,13 @@ class Phenotype {
         return offspring;
     }
 
-    /// Add a copy of connection c, create nodes when necessary
-    private void addConnection( Connection c, NodeGene ng1, NodeGene ng2 ) {
+    private Connection addConnectionFromGenes(ConGene cg, NodeGene ng1, NodeGene ng2) {
         Node n1, n2;
         // does a node with ng1 gene exist?
         auto range = nodes.find!(n=>n.id==ng1.id)();
         if( range.empty ) {
             // no node with ng1 gene exists. create and add it.
-            n1 = new Node(c.start.gene);
+            n1 = new Node(cg.start);
             nodes ~= n1;
         } else {
             // node with ng1 gene exists.
@@ -163,17 +148,27 @@ class Phenotype {
         range = nodes.find!(n=>n.id==ng2.id)();
         if( range.empty ) {
             // no node with ng2 gene exists. create and add it.
-            n2 = new Node(c.end.gene);
+            n2 = new Node(cg.end);
             nodes ~= n2;
         } else {
             // node with ng2 gene exists.
             n2 = range.front;
         }
         // finally add connection
-        cons ~= new Connection(c, n1, n2);
+        Connection newcon = new Connection(cg, n1, n2);
+        cons ~= newcon;
+        return newcon;
     }
 
-protected:
+    /// Add a copy of connection c, create nodes when necessary
+    private void addConnection( Connection c, NodeGene ng1, NodeGene ng2 ) {
+        Connection con = addConnectionFromGenes( c.gene, ng1, ng2);
+        con.setWeight(c.weight);
+        con.enabled = c.enabled;
+        cons ~= con;
+    }
+
+//protected:
     Genepool pool;
     Connection[] cons;
     Node[] nodes;

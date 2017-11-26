@@ -12,6 +12,9 @@ class ConGene {
         _innovation = _innovationCounter++;
         _startNode = start;
         _endNode = end;
+        // add connection to nodes connection list
+        _startNode.addOutputConGene(this);
+        _endNode.addInputConGene(this);
     }
 
     ///
@@ -42,6 +45,8 @@ class Connection {
         _end = end;
         _weight = uniform( -1.0f, 1.0f );
         enabled = true;
+        start.addOutputConnection(this);
+        end.addInputConnection(this);
     }
 
     ///
@@ -51,6 +56,8 @@ class Connection {
         _start = start;
         _end = end;
         enabled = con.enabled;
+        start.addOutputConnection(this);
+        end.addInputConnection(this);
     }
 
     float setWeight( float weight ) { return _weight = weight; }
