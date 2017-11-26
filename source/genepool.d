@@ -9,15 +9,15 @@ import std.stdio;
 ///
 class Genepool {
     ///
-    this( uint inputs, uint outputs, bool fullyConnected, bool enableRecurrentNets ) {
-        this.inputs = inputs;
-        this.outputs = outputs;
-        // Input nodes have id 0..inputs-1
-        foreach(i; 0..inputs) {
+    this( uint _inputs, uint _outputs, bool fullyConnected, bool enableRecurrentNets ) {
+        this._inputs = _inputs;
+        this._outputs = _outputs;
+        // Input nodes have id 0.._inputs-1
+        foreach(i; 0.._inputs) {
             nodeGenes ~= new NodeGene( NodeGene.Type.input );
         }
-        // Output nodes have id inputs..inputs+outputs-1
-        foreach(i; 0..outputs) {
+        // Output nodes have id _inputs.._inputs+_outputs-1
+        foreach(i; 0.._outputs) {
             nodeGenes ~= new NodeGene( NodeGene.Type.output );
         }
         if( fullyConnected ) {
@@ -146,9 +146,14 @@ class Genepool {
         return conGenes;
     }
 
+    uint getNodeCount() const { return cast(uint)nodeGenes.length; }
+
+    uint inputs() const @property { return _inputs; }
+    uint outputs() const @property { return _outputs; }
+
 private:
-    uint inputs;
-    uint outputs;
+    uint _inputs;
+    uint _outputs;
     bool recurrent;
     bool nodeAdded;
 

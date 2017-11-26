@@ -173,7 +173,7 @@ class Phenotype {
         cons ~= new Connection(c, n1, n2);
     }
 
-private:
+protected:
     Genepool pool;
     Connection[] cons;
     Node[] nodes;

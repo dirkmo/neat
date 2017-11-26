@@ -22,20 +22,20 @@ class NodeGene {
     }
 
     ///
-    void addInputConGene( ConGene input ) { inputs ~= input; }
+    void addInputConGene( ConGene input ) { _inputs ~= input; }
 
     ///
-    void addOutputConGene( ConGene output ) { outputs ~= output; }
+    void addOutputConGene( ConGene output ) { _outputs ~= output; }
 
     ///
-    ConGene[] getInputConGenes() { return inputs; }
+    ConGene[] getInputConGenes() { return _inputs; }
     
     ///
-    ConGene[] getOutputConGenes() { return outputs; }
+    ConGene[] getOutputConGenes() { return _outputs; }
 
     ///
     bool isInputToNode( NodeGene ng, out ConGene con ) {
-        auto icg = outputs.find!( cg => cg.end().id == ng.id )();
+        auto icg = _outputs.find!( cg => cg.end().id == ng.id )();
         if( icg.length >0 ) {
             con = icg[0];
             return true;
@@ -64,8 +64,8 @@ private:
     Type _type;
     uint _id;
     int _layerIndex;
-    ConGene[] inputs;
-    ConGene[] outputs;
+    ConGene[] _inputs;
+    ConGene[] _outputs;
 
     static uint _nodeId;
 }
@@ -77,16 +77,16 @@ class Node {
     }
 
     void addInputConnection( Connection input ) {
-        inputs ~= input;
+        _inputs ~= input;
     }
 
     void addOutputConnection( Connection output ) {
-        outputs ~= output;
+        _outputs ~= output;
     }
 
     ///
     bool isInputToNode( Node n, out Connection con ) {
-        auto ic = outputs.find!( c => c.end().id == n.id )();
+        auto ic = _outputs.find!( c => c.end().id == n.id )();
         if( ic.length >0 ) {
             con = ic[0];
             return true;
@@ -102,8 +102,10 @@ class Node {
         return format("%s", _gene._id);
     }
 
+    float value = 0.0f;
+
 private:
     NodeGene _gene;
-    Connection[] inputs;
-    Connection[] outputs;
+    Connection[] _inputs;
+    Connection[] _outputs;
 }
