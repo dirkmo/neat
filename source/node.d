@@ -3,6 +3,7 @@ module neat.node;
 import neat.connection;
 
 import std.algorithm;
+import std.string;
 
 ///
 class NodeGene {
@@ -54,6 +55,11 @@ class NodeGene {
     ///
     Type type() const @property { return _type; }
 
+    ///
+    override string toString() const {
+        return format("%s", _id);
+    }
+
 private:
     Type _type;
     uint _id;
@@ -78,8 +84,23 @@ class Node {
         outputs ~= output;
     }
 
+    ///
+    bool isInputToNode( Node n, out Connection con ) {
+        auto ic = outputs.find!( c => c.end().id == n.id )();
+        if( ic.length >0 ) {
+            con = ic[0];
+            return true;
+        }
+        return false;
+    }
+
     NodeGene gene() @property { return _gene; }
     uint id() const @property { return _gene.id; }
+
+    ///
+    override string toString() const {
+        return format("%s", _gene._id);
+    }
 
 private:
     NodeGene _gene;

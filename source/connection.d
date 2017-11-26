@@ -36,33 +36,43 @@ private:
 ///
 class Connection {
     ///
-    this( ConGene gene, Node input, Node output ) {
+    this( ConGene gene, Node start, Node end ) {
         _gene = gene;
+        _start = start;
+        _end = end;
         _weight = uniform( -1.0f, 1.0f );
         enabled = true;
     }
 
     ///
-    this( Connection con, Node input, Node output ) {
+    this( Connection con, Node start, Node end ) {
         _gene = con.gene;
         _weight = con.weight();
+        _start = start;
+        _end = end;
         enabled = con.enabled;
-        _input = input;
-        _output = output;
     }
 
-    Node input()  @property { return _input; }
-    Node output() @property { return _output; }
+    float setWeight( float weight ) { return _weight = weight; }
+
+    void mutateWeight( float probability, float strength ) {
+        if( uniform(0.0f, 1.0f ) < probability ) {
+            _weight += strength * uniform(-1.0f, 1.0f );
+        }
+    }
+
+    Node start()  @property { return _start; }
+    Node end() @property { return _end; }
     ConGene gene() @property { return _gene; }
     float weight()    const @property { return _weight; }
     uint innovation() const @property { return _gene.innovation; }
-    
+
     bool enabled;
 
 private:
     ConGene _gene;
-    Node _input;
-    Node _output;
+    Node _start;
+    Node _end;
 
     float _weight;
 }
