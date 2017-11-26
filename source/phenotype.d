@@ -18,6 +18,9 @@ class Phenotype {
                 addConnectionFromGenes(cg, cg.start, cg.end);
             }
         }
+        // sort nodes by id, making input nodes first, followed by
+        // output nodes
+        nodes.sort!"a.id<b.id"();
     }
 
     /// create an identical copy of this

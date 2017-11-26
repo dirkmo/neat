@@ -7,6 +7,7 @@ import neat.phenotype;
 
 import std.algorithm;
 import std.math;
+import std.stdio;
 
 ///
 class Individual : Phenotype {
@@ -17,13 +18,16 @@ class Individual : Phenotype {
 
     ///
     const(float)[] propagateStep( in float[] inputValues ) {
+        assert( inputValues.length == pool.inputs );
         // copy values into input nodes
         foreach( i, inp; nodes[0..pool.inputs] ) {
             inp.value = inputValues[i];
+            writefln("set node %s to %s", i, inp.value);
         }
         float[] newValues;
         newValues.length = pool.getNodeCount();
-        newValues[] = 0.0f;
+        newValues[pool.inputs..$] = 0.0f;
+        newValues[0..pool.inputs] = inputValues;
         // propagate
         foreach( c; cons ) {
             if( c.enabled ) {
@@ -49,16 +53,18 @@ class Individual : Phenotype {
     const(float)[] propagate( float[] inputValues ) {                             
         assert( !pool.isRecurrent() );
         // copy values into input nodes
-        foreach( i, inp; nodes[0..pool.inputs] ) {
-            inp.value = inputValues[i];
+        foreach( i, n; nodes[0..pool.inputs] ) {
+            n.value = inputValues[i];
         }
         foreach( n; nodes[pool.inputs..$] ) {
             n.value = 0.0f;
         }
+        writeln("Layer count: ", pool.getLayerCount());
         // propagate layer by layer
         foreach( lidx; 0..pool.getLayerCount()-1 ) {
             // get nodes in layer lidx
             auto layerNodes = nodes.filter!(n=>n.layerIndex==lidx)();
+            writefln("Layer %s, Nodes: %s", lidx, layerNodes);
             foreach( n1; layerNodes ) {
                 foreach( c; n1.getOutputConnections() ) {
                     if( c.enabled ) {
@@ -79,7 +85,8 @@ class Individual : Phenotype {
     
 private:
     float sigmoid( float x ) {
-        return 1.0f / ( 1.0f + exp(-x) );
+        return x;
+        //return 1.0f / ( 1.0f + exp(-x) );
     }
 
 }

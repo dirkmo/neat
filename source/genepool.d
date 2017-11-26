@@ -37,6 +37,7 @@ class Genepool {
 
     ///
     void updateNodesLayerIndex( NodeGene[] layerNodes, const int layerIndex ) {
+        writeln("LayerIndex: ", layerIndex);
         if( layerIndex == 0 ) {
             NodeGene[] list;
             // loop over all nodes
@@ -66,6 +67,7 @@ class Genepool {
                     n.layerIndex = layerIndex;
                 }
                 // recursion is done here
+                layerCount = layerIndex + 1;        
                 // sanity check: there shall be no nodes left with layer=-1
                 foreach(n; nodeGenes) {
                     assert( n.layerIndex > -1 );
@@ -87,7 +89,6 @@ class Genepool {
                 updateNodesLayerIndex( list, layerIndex + 1 );
             }
         }
-        layerCount = layerIndex + 1;
         nodeAdded = false;
     }
 
