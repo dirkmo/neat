@@ -11,6 +11,9 @@ import std.range;
 import std.stdio;
 
 class Phenotype {
+
+    this() @disable {};
+
     this( Genepool pool, bool createConnections ) {
         this.pool = pool;
         if( createConnections ) {
@@ -112,26 +115,30 @@ class Phenotype {
             auto range = lcp2[].find!(c => c.innovation==i.innovation)();
             Connection c;
             if( range.empty ) {
+                writeln("Only p1: ", i.innovation);
                 // only p1 has the gene, take it
                 c = i;
             } else {
                 // both parents p1 and p2 have the gene
                 // pick one at random
-                writefln("both: %s", i);
+                writefln("both: %s", i.innovation);
                 c = uniform(0.0f, 1.0f) < 0.5f ? i : range.front;
                 // and remove connection from list lcp2
                 lcp2.linearRemove(range.take(1));
+                writeln("Length: ", lcp2.array().length);
             }
             // add connection (and possibly nodes) to offspring
             offspring.addConnection(i, i.start.gene, i.end.gene);
         }
-
+        
         // the remaining connections in lcp2 are only in p2.
         // offspring will inherit them all
         foreach( i; lcp2 ) {
             // add connection (and possibly nodes) to offspring
             offspring.addConnection(i, i.start.gene, i.end.gene);
+            writeln("Only p2: ", i.innovation);
         }
+        writeln("cons.count = ", cons.length);
         return offspring;
     }
 
@@ -165,10 +172,10 @@ class Phenotype {
 
     /// Add a copy of connection c, create nodes when necessary
     private void addConnection( Connection c, NodeGene ng1, NodeGene ng2 ) {
+        writeln(__FUNCTION__);
         Connection con = addConnectionFromGenes( c.gene, ng1, ng2);
         con.setWeight(c.weight);
         con.enabled = c.enabled;
-        cons ~= con;
     }
 
 //protected:

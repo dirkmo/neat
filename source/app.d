@@ -3,6 +3,7 @@ import neat.connection;
 import neat.individual;
 import neat.node;
 import neat.population;
+import neat.phenotype;
 
 import std.algorithm;
 import std.container;
@@ -31,7 +32,7 @@ void printGenepool( Genepool pool ) {
     }
 }
 
-void printIndividual(Individual ind) {
+void printPhenotype(Phenotype ind) {
     foreach(n; ind.nodes ) {
         writefln("Node %s (layer %s)", n.id, n.layerIndex);
         write("  Input Cons: ");
@@ -74,13 +75,10 @@ void main()
 
     printGenepool(pop.pool);
     writeln();
-    printIndividual(ind);
+    printPhenotype(ind);
     writeln();
 
-    printState(ind);
-
-    auto output = ind.propagate([1.0f,0.0f]);
-    printState(ind);
-    output = ind.propagate([1.0f,1.0f]);
-    printState(ind);
+    Phenotype offspring = ind.crossOver(ind);
+    writeln("Offspring:");
+    printPhenotype(offspring);
 }
