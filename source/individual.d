@@ -82,6 +82,8 @@ class Individual : Phenotype {
         }
         return output;
     }
+
+    float fitness;
     
 private:
     float sigmoid( float x ) {

@@ -104,9 +104,9 @@ class Phenotype {
     }
 
     ///
-    Phenotype crossOver( Phenotype p2 ) {
+    T crossOver(T)( T p2 ) {
         writeln(__FUNCTION__);
-        Phenotype offspring = new Phenotype(pool, false);
+        T offspring = new T(pool, false);
         // add connections of p2 to slist
         auto lcp2 = SList!Connection(p2.cons);
         // loop over all connections of parent p1 (this) and look,
