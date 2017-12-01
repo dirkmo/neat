@@ -20,6 +20,8 @@ class Population {
         }   
     }
 
+    /// kill individuals with lowest fitness, fill up with
+    /// offspring
     void selection() {
         individuals.sort!( (a,b) => abs(a.fitness) < abs(b.fitness) )();
         uint survival = cast(uint)(individuals.length * survival_rate);
@@ -29,6 +31,14 @@ class Population {
             uint p2 = uniform(newInd, survival);
             auto offspring = individuals[i].crossOver(individuals[p2]);
             individuals ~= offspring;
+        }
+    }
+
+    void mutation() {
+        foreach( i; individuals ) {
+            i.mutateWeight( 0.05f, 1.0f );
+            i.mutateSplitUpConnection(10.0f);
+            i.mutateAddConnection(10.0f);
         }
     }
         

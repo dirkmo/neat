@@ -78,6 +78,13 @@ class Phenotype {
         c2.setWeight(con.weight);
     }
 
+    void mutateSplitUpConnection(float probability) {
+        if( uniform(0.0f, 1.0f) < probability ) {
+            Connection c = cons[uniform(0,$)];
+            mutateSplitUpConnection(c);
+        }
+    }
+
     ///
     void mutateAddConnection(Node n1, Node n2) {
         writeln(__FUNCTION__);
@@ -94,6 +101,14 @@ class Phenotype {
             cons ~= con;
         }
     }
+
+    void mutateAddConnection(float probability) {
+        if( uniform(0.0f, 1.0f) < probability ) {
+            Node n1 = nodes[uniform(0, $)];
+            Node n2 = nodes[uniform(0, $)];
+            mutateAddConnection( n1, n2 );
+        }        
+    }    
 
     /// mutate weights by probability with strength
     void mutateWeight(float probability, float strength) {
@@ -140,6 +155,27 @@ class Phenotype {
         }
         writeln("cons.count = ", cons.length);
         return offspring;
+    }
+
+    float distance( Phenotype p, float ce, float cd, float cw ) {
+        uint N = cast(uint)(cons.length > p.cons.length ? cons.length : p.cons.length);
+        uint excess, disjoint;
+        float wDiff = 0.0f;
+        auto r1 = cons[];
+        auto r2 = p.cons[];
+        while( !r1.empty || !r2.empty ) {
+            uint i1, i2;
+            if( !r1.empty) {
+                i1 = r1.front.innovation;
+                r1.popFront();
+            }
+            if( !r2.empty) {
+                i2 = r2.front.innovation;
+                r2.popFront();
+            }
+            // TODO: hier weiter
+        }
+        return 0.0f;
     }
 
     private Connection addConnectionFromGenes(ConGene cg, NodeGene ng1, NodeGene ng2) {

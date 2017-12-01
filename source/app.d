@@ -62,23 +62,28 @@ void printState(Individual ind) {
 
 void main()
 {
-    Population pop = new Population(2, 2, 1, false);
-    Individual ind = pop.individuals[0];
-    
-    Connection con = ind.cons[0];
-    ind.mutateSplitUpConnection(con);
+    Population pop = new Population(100, 2, 1, false);
+    float[][] patterns = [
+        [0, 0, 0],
+        [0, 1, 1],
+        [1, 0, 1],
+        [1, 1, 0],
+    ];
 
-    Node n1, n2;
-    n1 = ind.nodes[2];
-    n2 = ind.nodes[3];
-    ind.mutateAddConnection(n1, n2);
+    foreach( gen; 0..100 ) {
 
-    printGenepool(pop.pool);
-    writeln();
-    printPhenotype(ind);
-    writeln();
+        foreach( ind; pop.individuals ) {
+            float totalError = 0;
+            foreach( p; patterns ) {
+                float output = ind.propagate( p[0..2] )[0];
+                float error = p[2] - output;
+                error = error * error;
+                totalError += error;
+            }
+            ind.fitness = totalError;
+        }
+        pop.selection();
 
-    Phenotype offspring = ind.crossOver(ind);
-    writeln("Offspring:");
-    printPhenotype(offspring);
+
+    }
 }
