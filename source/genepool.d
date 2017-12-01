@@ -37,7 +37,7 @@ class Genepool {
 
     ///
     void updateNodesLayerIndex( NodeGene[] layerNodes, const int layerIndex ) {
-        writeln("LayerIndex: ", layerIndex);
+        //writeln("LayerIndex: ", layerIndex);
         if( layerIndex == 0 ) {
             NodeGene[] list;
             // loop over all nodes
@@ -102,32 +102,32 @@ class Genepool {
 
     ///
     bool mutateAddNewConGene( NodeGene n1, NodeGene n2, out ConGene newCon ) {
-        writeln(__FUNCTION__);
+        //writeln(__FUNCTION__);
         if( nodeAdded ) {
             updateNodesLayerIndex(null, 0);
         }
         
         if( !recurrent && n1.layerIndex >= n2.layerIndex ) {
             // connection would be recurrent
-            writefln("Abort, connection would be recurrent." );
+            //writefln("Abort, connection would be recurrent." );
             return false;
         }
 
         if( n1.isInputToNode(n2, newCon) ) {
             // nodes are already connected.
-            writefln("Connection gene %s already there", newCon);
+            //writefln("Connection gene %s already there", newCon);
             return true;
         }
         // create new connection gene
         newCon = new ConGene(n1, n2);
         conGenes ~= newCon;
-        writefln("Creating new congene %s", newCon);
+        //writefln("Creating new congene %s", newCon);
         return true;
     }
 
     ///
     void mutateSplitUpConGene( ConGene oldCon, out ConGene con1, out ConGene con2 ) {
-        writeln(__FUNCTION__);
+        //writeln(__FUNCTION__);
         if( oldCon.innovation in splitUpConGenes ) {
             auto mutation = splitUpConGenes[oldCon.innovation];
             con1 = mutation.con1;
@@ -144,6 +144,7 @@ class Genepool {
             con2 = new ConGene(n3, n2);
             conGenes ~= [con1, con2];
             splitUpConGenes[oldCon.innovation] = SplitUpConGeneMutation(con1, con2);
+            writeln("new connection");
         }
     }
 

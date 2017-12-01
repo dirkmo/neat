@@ -71,8 +71,9 @@ void main()
     ];
 
     foreach( gen; 0..100 ) {
-
-        foreach( ind; pop.individuals ) {
+        writeln("Generation ", gen);
+        foreach( idx, ind; pop.individuals ) {
+            write("\r  ind: ", idx);
             float totalError = 0;
             foreach( p; patterns ) {
                 float output = ind.propagate( p[0..2] )[0];
@@ -82,8 +83,11 @@ void main()
             }
             ind.fitness = totalError;
         }
+        writeln();
         pop.selection();
-
-
+        pop.mutation();
+        if( gen % 10 == 0 ) {
+            pop.pool.resetMutationList();
+        }
     }
 }

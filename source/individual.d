@@ -22,7 +22,7 @@ class Individual : Phenotype {
         // copy values into input nodes
         foreach( i, inp; nodes[0..pool.inputs] ) {
             inp.value = inputValues[i];
-            writefln("set node %s to %s", i, inp.value);
+            //writefln("set node %s to %s", i, inp.value);
         }
         float[] newValues;
         newValues.length = pool.getNodeCount();
@@ -59,12 +59,12 @@ class Individual : Phenotype {
         foreach( n; nodes[pool.inputs..$] ) {
             n.value = 0.0f;
         }
-        writeln("Layer count: ", pool.getLayerCount());
+        //writeln("Layer count: ", pool.getLayerCount());
         // propagate layer by layer
         foreach( lidx; 0..pool.getLayerCount()-1 ) {
             // get nodes in layer lidx
             auto layerNodes = nodes.filter!(n=>n.layerIndex==lidx)();
-            writefln("Layer %s, Nodes: %s", lidx, layerNodes);
+            //writefln("Layer %s, Nodes: %s", lidx, layerNodes);
             foreach( n1; layerNodes ) {
                 foreach( c; n1.getOutputConnections() ) {
                     if( c.enabled ) {
@@ -82,9 +82,7 @@ class Individual : Phenotype {
         }
         return output;
     }
-
-    float fitness;
-    
+        
 private:
     float sigmoid( float x ) {
         return x;

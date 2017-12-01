@@ -52,19 +52,46 @@ class Phenotype {
         return newp;
     }
 
+void printPhenotype(Phenotype ind) {
+    foreach(n; ind.nodes ) {
+        writefln("Node %s (layer %s)", n.id, n.layerIndex);
+        write("  Input Cons: ");
+        foreach(c; n.getInputConnections()) {
+            writef("%s ", c.innovation);
+        }
+        writeln();
+        write("  Output Cons: ");
+        foreach(c; n.getOutputConnections()) {
+            writef("%s ", c.innovation);
+        }
+        writeln();
+    }
+    foreach(c; ind.cons) {
+        writefln("Con %s, %s -> %s, w: %s, %s",
+                c.innovation, c.start.id, c.end.id, c.weight,
+                c.enabled ? "enabled" : "disabled");
+    }
+}
     /// perform split up mutation
     void mutateSplitUpConnection(Connection con) {
-        writeln(__FUNCTION__);
+        //writeln(__FUNCTION__);
         if( !con.enabled ) {
+            TODO: möglich, dass durch Crossover schon ein SplitUp indirekt geschehen
+            ist, dadurch aber diese Verbindung noch enabled. Daher ist dies kein
+            geeignetes Kriterium.
             // gene is disabled, is already split up
             return;
         }
         ConGene cg1, cg2;
         pool.mutateSplitUpConGene(con.gene, cg1, cg2);
+        auto ng = cg1.end;
+        if( nodes.canFind!(n=>(n.id==ng.id))() ) {
+            writefln("con: %s, cg1.end.id: %s", con.innovation, cg1.end.id);
+            printPhenotype(this);
+            assert(false);
+        }
         // disable old connection
         con.enabled = false;
-        auto ng = cg1.end;
-        assert( !nodes.canFind!(n=>(n.id==ng.id))() );
         // add new node
         auto n3 = new Node(ng);
         nodes ~= n3;
@@ -87,11 +114,11 @@ class Phenotype {
 
     ///
     void mutateAddConnection(Node n1, Node n2) {
-        writeln(__FUNCTION__);
+        //writeln(__FUNCTION__);
         Connection con;
         if( n1.isInputToNode( n2, con ) ) {
             // nodes already connected
-            writefln("nodes %s and %s already connected.", n1, n2);
+            //writefln("nodes %s and %s already connected.", n1, n2);
             return;
         }
         ConGene newConGene;
@@ -120,7 +147,7 @@ class Phenotype {
 
     ///
     T crossOver(T)( T p2 ) {
-        writeln(__FUNCTION__);
+        //writeln(__FUNCTION__);
         T offspring = new T(pool, false);
         // add connections of p2 to slist
         auto lcp2 = SList!Connection(p2.cons);
@@ -130,17 +157,17 @@ class Phenotype {
             auto range = lcp2[].find!(c => c.innovation==i.innovation)();
             Connection c;
             if( range.empty ) {
-                writeln("Only p1: ", i.innovation);
+                //writeln("Only p1: ", i.innovation);
                 // only p1 has the gene, take it
                 c = i;
             } else {
                 // both parents p1 and p2 have the gene
-                // pick one at random
-                writefln("both: %s", i.innovation);
-                c = uniform(0.0f, 1.0f) < 0.5f ? i : range.front;
+                //TODO: pick the one from the more fit parent
+                //writefln("both: %s", i.innovation);
+                c = fitness < p2.fitness ? i : range.front;
                 // and remove connection from list lcp2
                 lcp2.linearRemove(range.take(1));
-                writeln("Length: ", lcp2.array().length);
+                //writeln("Length: ", lcp2.array().length);
             }
             // add connection (and possibly nodes) to offspring
             offspring.addConnection(i, i.start.gene, i.end.gene);
@@ -151,9 +178,9 @@ class Phenotype {
         foreach( i; lcp2 ) {
             // add connection (and possibly nodes) to offspring
             offspring.addConnection(i, i.start.gene, i.end.gene);
-            writeln("Only p2: ", i.innovation);
+            //writeln("Only p2: ", i.innovation);
         }
-        writeln("cons.count = ", cons.length);
+        //writeln("cons.count = ", cons.length);
         return offspring;
     }
 
@@ -208,11 +235,14 @@ class Phenotype {
 
     /// Add a copy of connection c, create nodes when necessary
     private void addConnection( Connection c, NodeGene ng1, NodeGene ng2 ) {
-        writeln(__FUNCTION__);
+        //writeln(__FUNCTION__);
         Connection con = addConnectionFromGenes( c.gene, ng1, ng2);
         con.setWeight(c.weight);
         con.enabled = c.enabled;
     }
+
+    /// fitness = 0 is best, the bigger the worse
+    float fitness;
 
 //protected:
     Genepool pool;
