@@ -68,6 +68,10 @@ class Connection {
         }
     }
 
+    override string toString() const {
+        return format( "%s", innovation );
+    }
+
     Node start()  @property { return _start; }
     Node end() @property { return _end; }
     ConGene gene() @property { return _gene; }

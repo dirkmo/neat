@@ -4,6 +4,7 @@ import neat.genepool;
 import neat.individual;
 
 import std.algorithm;
+import std.stdio;
 import std.math;
 import std.random;
 
@@ -24,6 +25,8 @@ class Population {
     /// offspring
     void selection() {
         individuals.sort!( (a,b) => abs(a.fitness) < abs(b.fitness) )();
+        writefln("Best: %s, worst: %s, median: %s, average: %s", 
+            individuals[0].fitness, individuals[$-1].fitness, individuals[$/2].fitness, average());
         uint survival = cast(uint)(individuals.length * survival_rate);
         uint newInd = cast(uint)individuals.length - survival;
         individuals.length = survival;
@@ -36,10 +39,18 @@ class Population {
 
     void mutation() {
         foreach( i; individuals ) {
-            i.mutateWeight( 0.05f, 1.0f );
-            i.mutateSplitUpConnection(10.0f);
-            i.mutateAddConnection(10.0f);
+            i.mutateWeight( 0.2f, 1.5f );
+            i.mutateSplitUpConnection(0.1f);
+            i.mutateAddConnection(0.1f);
         }
+    }
+
+    float average() {
+        float avg = 0;
+        foreach(i; individuals) {
+            avg += i.fitness;
+        }
+        return avg / individuals.length;
     }
         
 //private:
@@ -47,5 +58,5 @@ class Population {
     Genepool pool;
     Individual[] individuals;
 
-    float survival_rate = 0.8;
+    float survival_rate = 0.9;
 }

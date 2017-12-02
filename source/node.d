@@ -97,6 +97,7 @@ class Node {
     NodeGene gene() @property { return _gene; }
     uint id() const @property { return _gene.id; }
     int layerIndex() const @property { return _gene.layerIndex; }
+    NodeGene.Type type() const @property { return _gene.type; }    
     Connection[] getInputConnections() { return _inputs; }
     Connection[] getOutputConnections() { return _outputs; }
 

@@ -6,6 +6,7 @@ import neat.node;
 
 import std.algorithm;
 import std.container;
+import std.math;
 import std.random;
 import std.range;
 import std.stdio;
@@ -52,54 +53,36 @@ class Phenotype {
         return newp;
     }
 
-void printPhenotype(Phenotype ind) {
-    foreach(n; ind.nodes ) {
-        writefln("Node %s (layer %s)", n.id, n.layerIndex);
-        write("  Input Cons: ");
-        foreach(c; n.getInputConnections()) {
-            writef("%s ", c.innovation);
-        }
-        writeln();
-        write("  Output Cons: ");
-        foreach(c; n.getOutputConnections()) {
-            writef("%s ", c.innovation);
-        }
-        writeln();
+    void xor() {
+        mutateSplitUpConnection(cons[0]);
+        mutateAddConnection(nodes[1], nodes[3] );
     }
-    foreach(c; ind.cons) {
-        writefln("Con %s, %s -> %s, w: %s, %s",
-                c.innovation, c.start.id, c.end.id, c.weight,
-                c.enabled ? "enabled" : "disabled");
-    }
-}
+
     /// perform split up mutation
     void mutateSplitUpConnection(Connection con) {
         //writeln(__FUNCTION__);
         if( !con.enabled ) {
-            TODO: möglich, dass durch Crossover schon ein SplitUp indirekt geschehen
-            ist, dadurch aber diese Verbindung noch enabled. Daher ist dies kein
-            geeignetes Kriterium.
             // gene is disabled, is already split up
             return;
         }
         ConGene cg1, cg2;
         pool.mutateSplitUpConGene(con.gene, cg1, cg2);
         auto ng = cg1.end;
-        if( nodes.canFind!(n=>(n.id==ng.id))() ) {
-            writefln("con: %s, cg1.end.id: %s", con.innovation, cg1.end.id);
-            printPhenotype(this);
-            assert(false);
+        Node n3 = findNodeByGene(ng);
+        if( n3 is null ) {
+            // add new node
+            n3 = new Node(ng);
+            nodes ~= n3;
         }
         // disable old connection
         con.enabled = false;
-        // add new node
-        auto n3 = new Node(ng);
-        nodes ~= n3;
         // add new connections
         auto n1 = con.start;
         auto n2 = con.end;
-        auto c1 = new Connection( cg1, n1, n3 );
-        auto c2 = new Connection( cg2, n3, n2 );
+        Connection c1 = findConnectionByGene( cg1 );
+        Connection c2 = findConnectionByGene( cg2 );
+        if( c1 is null ) c1 = new Connection( cg1, n1, n3 );
+        if( c2 is null ) c2 = new Connection( cg2, n3, n2 );
         cons ~= [c1, c2];
         c1.setWeight(1);
         c2.setWeight(con.weight);
@@ -110,6 +93,22 @@ void printPhenotype(Phenotype ind) {
             Connection c = cons[uniform(0,$)];
             mutateSplitUpConnection(c);
         }
+    }
+
+    Node findNodeByGene( NodeGene gene ) {
+        auto rn = nodes.find!(n=>(n.id==gene.id))();
+        if( rn.empty ) {
+            return null;
+        }
+        return rn.front;
+    }
+
+    Connection findConnectionByGene( ConGene gene ) {
+        auto rc = cons.find!(c=>(c.innovation==gene.innovation))();                
+        if( rc.empty ) {
+            return null;
+        }
+        return rc.front;
     }
 
     ///
@@ -181,6 +180,7 @@ void printPhenotype(Phenotype ind) {
             //writeln("Only p2: ", i.innovation);
         }
         //writeln("cons.count = ", cons.length);
+        offspring.nodes.sort!"a.id<b.id"();        
         return offspring;
     }
 
@@ -188,21 +188,30 @@ void printPhenotype(Phenotype ind) {
         uint N = cast(uint)(cons.length > p.cons.length ? cons.length : p.cons.length);
         uint excess, disjoint;
         float wDiff = 0.0f;
-        auto r1 = cons[];
-        auto r2 = p.cons[];
-        while( !r1.empty || !r2.empty ) {
-            uint i1, i2;
-            if( !r1.empty) {
-                i1 = r1.front.innovation;
-                r1.popFront();
-            }
-            if( !r2.empty) {
-                i2 = r2.front.innovation;
-                r2.popFront();
-            }
-            // TODO: hier weiter
+        Connection[uint] p1;
+        Connection[uint] p2;
+        uint p1max, p2max;
+        foreach(c; cons) { 
+            p1[c.innovation] = c;
+            if( c.innovation > p1max ) p1max = c.innovation;
         }
-        return 0.0f;
+        foreach(c; p.cons) {
+            p2[c.innovation] = c;
+            if( c.innovation > p2max ) p2max = c.innovation;
+        }
+        uint excessThresh = p1max > p2max ? p2max: p1max;
+        foreach( c; p1.byKey ) {
+            if( c in p2 ) {
+                wDiff += abs(p1[c].weight - p2[c].weight);
+                p2.remove(c);
+            } else {
+                c > excessThresh ? excess++ : disjoint++;
+            }
+        }
+        foreach( c; p2.byKey ) {
+            c > excessThresh ? excess++ : disjoint++;
+        }
+        return ce * excess + cd * disjoint + cw * wDiff;
     }
 
     private Connection addConnectionFromGenes(ConGene cg, NodeGene ng1, NodeGene ng2) {

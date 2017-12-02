@@ -30,7 +30,7 @@ class Individual : Phenotype {
         newValues[0..pool.inputs] = inputValues;
         // propagate
         foreach( c; cons ) {
-            if( c.enabled ) {
+            if( c.enabled | true) {
                 auto n1 = c.start;
                 auto nid2 = c.end.id;
                 newValues[nid2] += c.weight * sigmoid(n1.value);
@@ -68,7 +68,9 @@ class Individual : Phenotype {
             foreach( n1; layerNodes ) {
                 foreach( c; n1.getOutputConnections() ) {
                     if( c.enabled ) {
-                        c.end.value += c.weight * sigmoid(n1.value);
+                        float sig = sigmoid(n1.value);
+                        c.end.value += c.weight * sig;
+                        //writefln("sig: %s, w: %s, Val: %s", sig, c.weight, c.end.value);
                     }
                 }
             }
@@ -78,15 +80,15 @@ class Individual : Phenotype {
         float[] output;
         output.length = pool.outputs;
         foreach( i, on; outputNodes ) {
+            assert( on.type == NodeGene.Type.output, "Outputneuron ist kein output mehr." );
             output[i] = on.value;
         }
         return output;
     }
-        
+
 private:
     float sigmoid( float x ) {
-        return x;
-        //return 1.0f / ( 1.0f + exp(-x) );
+        return 1.0f / ( 1.0f + exp(-x) );
     }
 
 }

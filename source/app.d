@@ -62,7 +62,8 @@ void printState(Individual ind) {
 
 void main()
 {
-    Population pop = new Population(100, 2, 1, false);
+    Population pop = new Population(20, 2, 1, false);
+
     float[][] patterns = [
         [0, 0, 0],
         [0, 1, 1],
@@ -70,24 +71,51 @@ void main()
         [1, 1, 0],
     ];
 
-    foreach( gen; 0..100 ) {
+    foreach( gen; 0..10 ) {
+        writeln("============================");
         writeln("Generation ", gen);
+        writefln("Nodes: %s, Cons: %s, Layers: %s",
+            pop.pool.nodeGenes.length, pop.pool.conGenes.length,
+            pop.pool.getLayerCount());
         foreach( idx, ind; pop.individuals ) {
-            write("\r  ind: ", idx);
+            //writefln("----------Ind: %s----------", idx);
             float totalError = 0;
-            foreach( p; patterns ) {
+            foreach( pc, p; patterns ) {
+                //writeln("Pattern ", pc);
                 float output = ind.propagate( p[0..2] )[0];
-                float error = p[2] - output;
+                float error = p[2] - output;                
                 error = error * error;
                 totalError += error;
+                //writefln("Output: %s", output);
             }
             ind.fitness = totalError;
         }
         writeln();
-        pop.selection();
-        pop.mutation();
-        if( gen % 10 == 0 ) {
-            pop.pool.resetMutationList();
-        }
+        pop.selection();       
+        if( gen < 48 ) 
+            pop.mutation();
     }
+    foreach( pc, p; patterns ) {
+        writeln("Pattern ", pc);
+        float output = pop.individuals[0].propagate( p[0..2] )[0];
+        float error = p[2] - output;                
+        error = error * error;
+        writefln("Output: %s", output);
+    }
+    printPhenotype(pop.individuals[0]);
+
+    ulong min, max;
+    float mind = 1000, maxd = 0;
+    foreach( idx, i; pop.individuals ) {
+        if( idx == 0 ) continue;
+        float d = pop.individuals[0].distance(i, 1, 1, 1);
+        if( mind > d ) {
+            min = idx; mind = d;
+        }
+        if( maxd < d ) {
+            max = idx; maxd = d;
+        }
+        writefln("%s: %s", idx, d);
+    }
+
 }

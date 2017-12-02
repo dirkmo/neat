@@ -132,7 +132,7 @@ class Genepool {
             auto mutation = splitUpConGenes[oldCon.innovation];
             con1 = mutation.con1;
             con2 = mutation.con2;
-            writefln("mutation already in genepool. Reusing con1: %s, con2: %s", con1, con2);
+            //writefln("mutation reuse for %s: cg1: %s, cg2: %s", oldCon, oldCon.innovation, con1, con2);
         } else {
             // split up connection gene
             NodeGene n1 = oldCon.start();
@@ -144,7 +144,7 @@ class Genepool {
             con2 = new ConGene(n3, n2);
             conGenes ~= [con1, con2];
             splitUpConGenes[oldCon.innovation] = SplitUpConGeneMutation(con1, con2);
-            writeln("new connection");
+            //writefln("new connection for %s: cg1: %s, cg2: %s", oldCon, con1, con2);
         }
     }
 
