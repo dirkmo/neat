@@ -243,7 +243,7 @@ class Phenotype {
     }
 
     /// Add a copy of connection c, create nodes when necessary
-    private void addConnection( Connection c, NodeGene ng1, NodeGene ng2 ) {
+    void addConnection( Connection c, NodeGene ng1, NodeGene ng2 ) {
         //writeln(__FUNCTION__);
         Connection con = addConnectionFromGenes( c.gene, ng1, ng2);
         con.setWeight(c.weight);
