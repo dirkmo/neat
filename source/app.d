@@ -62,7 +62,7 @@ void printState(Individual ind) {
 
 void main()
 {
-    string topology = "i0 i1 h0 b0 o0; i0-h0 i1-h0 i0-o0 i1-o0 b0-o0 b0-h0";
+    string topology = "i0 i1 h0 b0 o0; i0-h0 i1-h0 i0-o0 i1-o0 b0-o0 b0-h0 h0-o0";
 
     Population pop = new Population(100, topology, false);
 
@@ -73,7 +73,7 @@ void main()
         [1, 1, 0],
     ];
 
-    foreach( gen; 0..100 ) {
+    foreach( gen; 0..1000 ) {
         writeln("============================");
         writeln("Generation ", gen);
         writefln("Nodes: %s, Cons: %s, Layers: %s",
@@ -95,9 +95,13 @@ void main()
         pop.selection();
         pop.mutation();
     }
+    float totalError = 0;
     foreach( pc, p; patterns ) {
         writeln("Pattern ", pc);
         float output = pop.individuals[0].propagate( p[0..2] )[0];
         writefln("Output: %s", output);
+        float error = abs(p[2] - output);
+        totalError += error;
+        writefln("TotalError: %s", totalError);
     }
 }

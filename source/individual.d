@@ -34,7 +34,7 @@ class Individual : Phenotype {
             if( c.enabled | true) {
                 auto n1 = c.start;
                 auto nid2 = c.end.id;
-                newValues[nid2] += c.weight * sigmoid(n1.value);
+                newValues[nid2] += c.weight * activation(n1.value);
             }
         }
         // copy new values into node.values
@@ -68,11 +68,14 @@ class Individual : Phenotype {
             auto layerNodes = nodes.filter!(n=>n.layerIndex==lidx)();
             //writefln("Layer %s, Nodes: %s", lidx, layerNodes);
             foreach( n1; layerNodes ) {
+                //writeln("Cons: ", n1.getOutputConnections() );
                 foreach( c; n1.getOutputConnections() ) {
                     if( c.enabled ) {
-                        float sig = sigmoid(n1.value);
+                        float sig = activation(n1.value);
+                        //writef("Node %s += con%s * Node %s: ", c.end.id, c.innovation, n1.id);
+                        //writef("Node %s = %s + %s * %s = ", c.end.id, c.end.value, c.weight, n1.value);
                         c.end.value += c.weight * sig;
-                        //writefln("sig: %s, w: %s, Val: %s", sig, c.weight, c.end.value);
+                        //writefln("%s", c.end.value);
                     }
                 }
             }
@@ -89,8 +92,11 @@ class Individual : Phenotype {
     }
 
 private:
-    float sigmoid( float x ) {
-        return 1.0f / ( 1.0f + exp(-x) );
+    float activation( float x ) {
+        //return 1.0f / ( 1.0f + exp(-x) );
+        //return tanh(x*10)*10;
+        return x < 0 ? 0 : x;
+        //return x;
     }
 
     void setBiasNodeValue( float val ) {

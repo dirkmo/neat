@@ -41,6 +41,9 @@ class Genepool {
         updateNodesLayerIndex(null, 0);
     }
 
+    /// topology: string that defines start topology.
+    /// example: i0 i1 h1 o0 b0 ; i0-h1 i1-h1 h1-o1 b0-h1
+    /// i: input, h: hidden, b: bias, o: output
     this( string topology, bool enableRecurrentNets ) {
         // first: adding nodes in correct order
         assert(topology.canFind(';'));

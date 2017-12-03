@@ -38,18 +38,19 @@ class Population {
         writefln("Best: %s, worst: %s, median: %s, average: %s", 
             individuals[0].fitness, individuals[$-1].fitness, individuals[$/2].fitness, average());
         uint survival = cast(uint)(individuals.length * survival_rate);
-        uint newInd = cast(uint)individuals.length - survival;
+        uint oldLength = cast(uint)individuals.length;
         individuals.length = survival;
-        foreach( i; 0..newInd ) {
+        uint i;
+        while(individuals.length < oldLength ) {
             uint p2 = uniform(0, survival);
-            auto offspring = individuals[i].crossOver(individuals[p2]);
+            auto offspring = individuals[i++].crossOver(individuals[p2]);
             individuals ~= offspring;
         }
     }
 
     void mutation() {
         foreach( i; individuals ) {
-            i.mutateWeight( 0.2f, 1.0f );
+            i.mutateWeight( 0.1f, 1.0f );
             //i.mutateSplitUpConnection(0.01f);
             //i.mutateAddConnection(0.1f);
         }
@@ -68,5 +69,5 @@ class Population {
     Genepool pool;
     Individual[] individuals;
 
-    float survival_rate = 0.5;
+    float survival_rate = 0.90;
 }
