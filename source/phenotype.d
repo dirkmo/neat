@@ -214,20 +214,6 @@ class Phenotype {
         return ce * excess + cd * disjoint + cw * wDiff;
     }
 
-    ubyte[] score() {
-        const uint geneCount = cast(uint)pool.getConGenes().length;
-        ubyte[] score;
-        score.length = geneCount / 8 + ((geneCount % 8) ? 1 : 0);
-        writefln("geneCount: %s, length: %s", geneCount, score.length);
-        foreach(c; cons) {
-            const uint inno = c.gene().innovation;
-            const uint byteIdx = inno / 8;
-            const uint bit = inno % 8;
-            score[byteIdx] |= 1 << bit;
-        }
-        return score;
-    }
-
     private Connection addConnectionFromGenes(ConGene cg, NodeGene ng1, NodeGene ng2) {
         Node n1, n2;
         // does a node with ng1 gene exist?

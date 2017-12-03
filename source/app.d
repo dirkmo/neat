@@ -113,9 +113,5 @@ void main()
     
     printPhenotype(pop.first);
 
-    for(int i=0; i<pop.individuals.length; i+=10) {
-        auto ind = pop.individuals[i];
-        writefln("%s: %s", i, ind.score());
-    }
     
 }
