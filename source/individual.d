@@ -24,6 +24,7 @@ class Individual : Phenotype {
             inp.value = inputValues[i];
             //writefln("set node %s to %s", i, inp.value);
         }
+        setBiasNodeValue(1.0f);        
         float[] newValues;
         newValues.length = pool.getNodeCount();
         newValues[pool.inputs..$] = 0.0f;
@@ -59,6 +60,7 @@ class Individual : Phenotype {
         foreach( n; nodes[pool.inputs..$] ) {
             n.value = 0.0f;
         }
+        setBiasNodeValue(1.0f);
         //writeln("Layer count: ", pool.getLayerCount());
         // propagate layer by layer
         foreach( lidx; 0..pool.getLayerCount()-1 ) {
@@ -91,4 +93,12 @@ private:
         return 1.0f / ( 1.0f + exp(-x) );
     }
 
+    void setBiasNodeValue( float val ) {
+        // set bias node to value if it exists
+        if( nodes.length > pool.inputs + pool.outputs &&
+            nodes[pool.inputs+pool.outputs].type == NodeGene.Type.bias )
+        {
+              nodes[pool.inputs+pool.outputs].value = val;
+        }
+    }
 }

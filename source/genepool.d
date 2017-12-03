@@ -9,7 +9,7 @@ import std.stdio;
 ///
 class Genepool {
     ///
-    this( uint _inputs, uint _outputs, bool fullyConnected, bool enableRecurrentNets ) {
+    this( uint _inputs, uint _outputs, bool addBias, bool fullyConnected, bool enableRecurrentNets ) {
         this._inputs = _inputs;
         this._outputs = _outputs;
         // Input nodes have id 0.._inputs-1
@@ -19,6 +19,10 @@ class Genepool {
         // Output nodes have id _inputs.._inputs+_outputs-1
         foreach(i; 0.._outputs) {
             nodeGenes ~= new NodeGene( NodeGene.Type.output );
+        }
+        if( addBias ) {
+            createBiasNodeGene();
+            // bias neuron has id inputs + outputs
         }
         if( fullyConnected ) {
             auto inputNodes = nodeGenes.filter!(n=>n.type == NodeGene.Type.input)();
@@ -43,7 +47,7 @@ class Genepool {
             // loop over all nodes
             foreach( n; nodeGenes ) {
                 // if node is input, set layer and add connected nodes to list
-                if( n.type == NodeGene.Type.input ) {
+                if( n.type == NodeGene.Type.input || n.type == NodeGene.Type.bias ) {
                     n.layerIndex = 0;
                     // get every out connection of node
                     foreach( c; n.getOutputConGenes() ) {
@@ -100,15 +104,26 @@ class Genepool {
         return newNode;
     }
 
+    NodeGene createBiasNodeGene() {
+        auto newNode = new NodeGene(NodeGene.Type.bias);
+        nodeGenes ~= newNode;
+        nodeAdded = true;
+        return newNode;
+    }
+
     ///
     bool mutateAddNewConGene( NodeGene n1, NodeGene n2, out ConGene newCon ) {
         //writeln(__FUNCTION__);
+        if( n2.type == NodeGene.Type.bias ) {
+            // bias neurons cannot have inputs, only outputs.
+            return false;
+        }
+
         if( nodeAdded ) {
             updateNodesLayerIndex(null, 0);
         }
-        
         if( !recurrent && n1.layerIndex >= n2.layerIndex ) {
-            // connection would be recurrent
+            // neural net is not recurrent, but connection would be recurrent
             //writefln("Abort, connection would be recurrent." );
             return false;
         }

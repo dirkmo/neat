@@ -12,6 +12,7 @@ class Population {
     this( uint popsize, uint inputs, uint outputs, bool recurrent ) { 
         pool = new Genepool(
             inputs, outputs,
+            true /*addBias*/,
             true /*fullyConnected*/,
             recurrent /*enableRecurrentNets*/
         );

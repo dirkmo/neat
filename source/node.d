@@ -8,13 +8,13 @@ import std.string;
 ///
 class NodeGene {
     ///
-    enum Type { input, hidden, output }
+    enum Type { input, hidden, bias, output }
 
     ///
     this( Type type ) {
         this._id = _nodeId++;
         this._type = type;
-        if( _type == Type.input ) {
+        if( _type == Type.input || _type == Type.bias ) {
             layerIndex = 0;
         } else {
             layerIndex = -1;
@@ -22,10 +22,16 @@ class NodeGene {
     }
 
     ///
-    void addInputConGene( ConGene input ) { _inputs ~= input; }
+    void addInputConGene( ConGene input ) { 
+        assert( _type == Type.hidden || _type == Type.output );
+        _inputs ~= input;
+    }
 
     ///
-    void addOutputConGene( ConGene output ) { _outputs ~= output; }
+    void addOutputConGene( ConGene output ) {
+        assert( _type !=  Type.output );
+        _outputs ~= output;
+    }
 
     ///
     ConGene[] getInputConGenes() { return _inputs; }
