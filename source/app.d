@@ -62,7 +62,8 @@ void printState(Individual ind) {
 
 void main()
 {
-    string topology = "i0 i1 h0 b0 o0; i0-h0 i1-h0 i0-o0 i1-o0 b0-o0 b0-h0 h0-o0";
+    //string topology = "i0 i1 h0 b0 o0; i0-h0 i1-h0 i0-o0 i1-o0 b0-o0 b0-h0 h0-o0";
+    string topology = "i0 i1 o0; i0-o0 i1-o0";
 
     Population pop = new Population(100, topology, false);
 
@@ -73,7 +74,8 @@ void main()
         [1, 1, 0],
     ];
 
-    foreach( gen; 0..1000 ) {
+    uint max = 1000;
+    foreach( gen; 0..max ) {
         writeln("============================");
         writeln("Generation ", gen);
         writefln("Nodes: %s, Cons: %s, Layers: %s",
@@ -89,11 +91,15 @@ void main()
                 totalError += error;
                 //writefln("Output: %s", output);
             }
-            ind.fitness = totalError;
+            ind.fitness = totalError + ind.cons.length / 20;
         }
         writeln();
         pop.selection();
-        pop.mutation();
+        if(pop.first.fitness < 0.01 ) {
+            break;
+        }
+        if( gen < max - 1 )
+            pop.mutation();
     }
     float totalError = 0;
     foreach( pc, p; patterns ) {
@@ -104,4 +110,5 @@ void main()
         totalError += error;
         writefln("TotalError: %s", totalError);
     }
+    printPhenotype(pop.first);
 }

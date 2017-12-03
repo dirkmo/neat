@@ -51,8 +51,8 @@ class Population {
     void mutation() {
         foreach( i; individuals ) {
             i.mutateWeight( 0.1f, 1.0f );
-            //i.mutateSplitUpConnection(0.01f);
-            //i.mutateAddConnection(0.1f);
+            i.mutateSplitUpConnection(0.001f);
+            i.mutateAddConnection(0.001f);
         }
     }
 
@@ -62,6 +62,10 @@ class Population {
             avg += i.fitness;
         }
         return avg / individuals.length;
+    }
+
+    Individual first() {
+        return individuals[0];
     }
         
 //private:
