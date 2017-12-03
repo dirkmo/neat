@@ -53,11 +53,6 @@ class Phenotype {
         return newp;
     }
 
-    void xor() {
-        mutateSplitUpConnection(cons[0]);
-        mutateAddConnection(nodes[1], nodes[3] );
-    }
-
     /// perform split up mutation
     void mutateSplitUpConnection(Connection con) {
         //writeln(__FUNCTION__);
@@ -79,13 +74,15 @@ class Phenotype {
         // add new connections
         auto n1 = con.start;
         auto n2 = con.end;
-        Connection c1 = findConnectionByGene( cg1 );
-        Connection c2 = findConnectionByGene( cg2 );
-        if( c1 is null ) c1 = new Connection( cg1, n1, n3 );
-        if( c2 is null ) c2 = new Connection( cg2, n3, n2 );
-        cons ~= [c1, c2];
-        c1.setWeight(1);
-        c2.setWeight(con.weight);
+        Connection c1, c2;
+        if( !findConnectionByGene( cg1, c1 ) && !findConnectionByGene( cg2, c2 )) {
+            c1 = new Connection( cg1, n1, n3 );
+            c2 = new Connection( cg2, n3, n2 );
+            c1.setWeight(1.0f);
+            c2.setWeight(con.weight);
+            cons ~= c1;
+            cons ~= c2;
+        }        
     }
 
     void mutateSplitUpConnection(float probability) {
@@ -103,12 +100,13 @@ class Phenotype {
         return rn.front;
     }
 
-    Connection findConnectionByGene( ConGene gene ) {
+    bool findConnectionByGene( ConGene gene, ref Connection con ) {
         auto rc = cons.find!(c=>(c.innovation==gene.innovation))();                
         if( rc.empty ) {
-            return null;
+            return false;
         }
-        return rc.front;
+        con = rc.front;
+        return true;
     }
 
     ///
@@ -123,6 +121,7 @@ class Phenotype {
         ConGene newConGene;
         if( pool.mutateAddNewConGene(n1.gene, n2.gene, newConGene) ) {
             // create connection from gene
+            assert(!cons.canFind!(c=>c.innovation==newConGene.innovation)());
             con = new Connection(newConGene, n1, n2);
             cons ~= con;
         }
@@ -161,7 +160,6 @@ class Phenotype {
                 c = i;
             } else {
                 // both parents p1 and p2 have the gene
-                //TODO: pick the one from the more fit parent
                 //writefln("both: %s", i.innovation);
                 c = fitness < p2.fitness ? i : range.front;
                 // and remove connection from list lcp2
@@ -175,12 +173,14 @@ class Phenotype {
         // the remaining connections in lcp2 are only in p2.
         // offspring will inherit them all
         foreach( i; lcp2 ) {
+            //writeln("Only p2: ", i.innovation);            
+            assert(offspring.cons.canFind!(c=>c.innovation == i.innovation)() == false);
             // add connection (and possibly nodes) to offspring
             offspring.addConnection(i, i.start.gene, i.end.gene);
             //writeln("Only p2: ", i.innovation);
         }
         //writeln("cons.count = ", cons.length);
-        offspring.nodes.sort!"a.id<b.id"();        
+        offspring.nodes.sort!"a.id<b.id"();       
         return offspring;
     }
 
@@ -212,6 +212,20 @@ class Phenotype {
             c > excessThresh ? excess++ : disjoint++;
         }
         return ce * excess + cd * disjoint + cw * wDiff;
+    }
+
+    ubyte[] score() {
+        const uint geneCount = cast(uint)pool.getConGenes().length;
+        ubyte[] score;
+        score.length = geneCount / 8 + ((geneCount % 8) ? 1 : 0);
+        writefln("geneCount: %s, length: %s", geneCount, score.length);
+        foreach(c; cons) {
+            const uint inno = c.gene().innovation;
+            const uint byteIdx = inno / 8;
+            const uint bit = inno % 8;
+            score[byteIdx] |= 1 << bit;
+        }
+        return score;
     }
 
     private Connection addConnectionFromGenes(ConGene cg, NodeGene ng1, NodeGene ng2) {
