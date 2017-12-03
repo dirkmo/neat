@@ -54,11 +54,13 @@ class Genepool {
             auto node = new NodeGene( NodeGene.Type.input );
             nodeGenes ~= node;
             nodeMap[n] = node;
+            _inputs++;
         }
         foreach(n; output) {
             auto node = new NodeGene( NodeGene.Type.output );
             nodeGenes ~= node;
             nodeMap[n] = node;
+            _outputs++;
         }
         foreach(n; bias) {
             auto node = new NodeGene( NodeGene.Type.bias );

@@ -67,10 +67,10 @@ void main()
     Population pop = new Population(100, topology, false);
 
     float[][] patterns = [
-        [1, 0, 0, 0],
-        [1, 0, 1, 1],
-        [1, 1, 0, 1],
-        [1, 1, 1, 0],
+        [0, 0, 0],
+        [0, 1, 1],
+        [1, 0, 1],
+        [1, 1, 0],
     ];
 
     foreach( gen; 0..100 ) {
@@ -84,23 +84,20 @@ void main()
             float totalError = 0;
             foreach( pc, p; patterns ) {
                 //writeln("Pattern ", pc);
-                float output = ind.propagate( p[0..3] )[0];
-                float error = abs(p[3] - output);
+                float output = ind.propagate( p[0..2] )[0];
+                float error = abs(p[2] - output);
                 totalError += error;
                 //writefln("Output: %s", output);
             }
             ind.fitness = totalError;
         }
         writeln();
-        pop.selection();       
-        if( gen < 48 ) 
-            pop.mutation();
+        pop.selection();
+        pop.mutation();
     }
     foreach( pc, p; patterns ) {
         writeln("Pattern ", pc);
-        float output = pop.individuals[0].propagate( p[0..3] )[0];
-        float error = p[3] - output;                
-        error = error * error;
+        float output = pop.individuals[0].propagate( p[0..2] )[0];
         writefln("Output: %s", output);
     }
 }
