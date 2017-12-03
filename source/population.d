@@ -22,6 +22,15 @@ class Population {
         }   
     }
 
+
+    this( uint popsize, string topology, bool recurrent ) {
+        pool = new Genepool(topology, recurrent);
+        individuals.length = popsize;
+        foreach( ref i; individuals ) { 
+            i = new Individual( pool, true /*createConPhenotype*/ );
+        }   
+    }
+
     /// kill individuals with lowest fitness, fill up with
     /// offspring
     void selection() {

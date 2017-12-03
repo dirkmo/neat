@@ -62,7 +62,9 @@ void printState(Individual ind) {
 
 void main()
 {
-    Population pop = new Population(100, 3, 1, false);
+    string topology = "i0 i1 h0 b0 o0; i0-h0 i1-h0 i0-o0 i1-o0 b0-o0 b0-h0";
+
+    Population pop = new Population(100, topology, false);
 
     float[][] patterns = [
         [1, 0, 0, 0],
@@ -71,7 +73,7 @@ void main()
         [1, 1, 1, 0],
     ];
 
-    foreach( gen; 0..1000 ) {
+    foreach( gen; 0..100 ) {
         writeln("============================");
         writeln("Generation ", gen);
         writefln("Nodes: %s, Cons: %s, Layers: %s",
@@ -83,8 +85,8 @@ void main()
             foreach( pc, p; patterns ) {
                 //writeln("Pattern ", pc);
                 float output = ind.propagate( p[0..3] )[0];
-                float error = p[3] - output;
-                totalError += error*error;
+                float error = abs(p[3] - output);
+                totalError += error;
                 //writefln("Output: %s", output);
             }
             ind.fitness = totalError;

@@ -4,7 +4,9 @@ import neat.connection;
 import neat.node;
 
 import std.algorithm;
+import std.conv;
 import std.stdio;
+import std.string;
 
 ///
 class Genepool {
@@ -36,6 +38,51 @@ class Genepool {
         }
         recurrent = enableRecurrentNets;
         // assign every node a layer index
+        updateNodesLayerIndex(null, 0);
+    }
+
+    this( string topology, bool enableRecurrentNets ) {
+        // first: adding nodes in correct order
+        assert(topology.canFind(';'));
+        auto split = topology.until(';').to!string().splitter(' ');
+        auto input = split.filter!(s=>s[0] == 'i')();
+        auto hidden = split.filter!(s=>s[0] == 'h')();
+        auto output = split.filter!(s=>s[0] == 'o')();
+        auto bias = split.filter!(s=>s[0] == 'b')();
+        NodeGene[string] nodeMap;
+        foreach(n; input) {
+            auto node = new NodeGene( NodeGene.Type.input );
+            nodeGenes ~= node;
+            nodeMap[n] = node;
+        }
+        foreach(n; output) {
+            auto node = new NodeGene( NodeGene.Type.output );
+            nodeGenes ~= node;
+            nodeMap[n] = node;
+        }
+        foreach(n; bias) {
+            auto node = new NodeGene( NodeGene.Type.bias );
+            nodeGenes ~= node;
+            nodeMap[n] = node;
+        }
+        foreach(n; hidden) {
+            auto node = new NodeGene( NodeGene.Type.hidden );
+            nodeGenes ~= node;
+            nodeMap[n] = node;
+        }
+
+        // create connections
+        split = topology.find(';').to!string().splitter(' ');
+        split.popFront();
+        foreach( c; split ) {
+            assert(c[2]=='-');
+            NodeGene n1 = nodeMap[c[0..2]];
+            NodeGene n2 = nodeMap[c[3..$]];
+            auto con = new ConGene(n1, n2);
+            conGenes ~= con;
+        }
+
+        recurrent = enableRecurrentNets;
         updateNodesLayerIndex(null, 0);
     }
 
