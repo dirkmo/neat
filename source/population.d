@@ -14,7 +14,7 @@ class Population {
             inputs, outputs,
             true /*fullyConnected*/,
             recurrent /*enableRecurrentNets*/
-        );  
+        );
         individuals.length = popsize;
         foreach( ref i; individuals ) { 
             i = new Individual( pool, true /*createConPhenotype*/ );
@@ -31,7 +31,7 @@ class Population {
         uint newInd = cast(uint)individuals.length - survival;
         individuals.length = survival;
         foreach( i; 0..newInd ) {
-            uint p2 = uniform(newInd, survival);
+            uint p2 = uniform(0, survival);
             auto offspring = individuals[i].crossOver(individuals[p2]);
             individuals ~= offspring;
         }
@@ -39,8 +39,8 @@ class Population {
 
     void mutation() {
         foreach( i; individuals ) {
-            i.mutateWeight( 0.2f, 1.5f );
-            i.mutateSplitUpConnection(0.1f);
+            i.mutateWeight( 0.5f, 1.0f );
+            i.mutateSplitUpConnection(0.01f);
             i.mutateAddConnection(0.1f);
         }
     }
@@ -58,5 +58,5 @@ class Population {
     Genepool pool;
     Individual[] individuals;
 
-    float survival_rate = 0.9;
+    float survival_rate = 0.5;
 }

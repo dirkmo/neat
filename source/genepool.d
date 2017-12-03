@@ -71,7 +71,7 @@ class Genepool {
                 // sanity check: there shall be no nodes left with layer=-1
                 foreach(n; nodeGenes) {
                     assert( n.layerIndex > -1 );
-                }                
+                }
             } else {
                 NodeGene[] list;
                 foreach( n; layerNodes ) {

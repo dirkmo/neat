@@ -11,17 +11,18 @@ class Individuum {
     ulong nr;
     float x;
     float y;
+    float distance( Individuum i ) {
+        float dx = (x - i.x);
+        dx = dx*dx;
+        float dy = (y - i.y);
+        dy = dy*dy;
+        return sqrt(dx+dy);
+    }
 }
 
-float distance( Individuum i1, Individuum i2 ) {
-    float dx = (i1.x - i2.x);
-    dx = dx*dx;
-    float dy = (i1.y - i2.y);
-    dy = dy*dy;
-    return sqrt(dx+dy);
-}
 
-void main() {
+
+void mainA() {
     Individuum[10] ind;
     foreach(idx, ref i; ind) {
         i = new Individuum();
@@ -36,16 +37,29 @@ void main() {
     uint sc;
     auto list = DList!Individuum(ind);
 
-    while( true ) {
-
-        auto range = list[].filter!( i => distance(ind[0], i) < thresh )();
-        //writeln(range);
-        if( sc >= species.length ) {
-            species.length++;
+    //delegate bool cmp(i) { return distance(ind[0], i) < thresh;};
+    while( !list.empty ) {
+        writefln("Length: %s", list[].walkLength());
+        auto range = list[];
+        auto reference = range.front;
+        while(!range.empty) {
+            if( reference.distance(range.front) < thresh ) {
+                if( sc >= species.length ) {
+                    species.length++;
+                }
+                species[sc] ~= range.front;
+                list.linearRemove(range.take(1));
+            }
+            range.popFront();
         }
-        foreach( r; range ) {
-            species[sc] ~= r;
-        }
-        list.remove(range);
+        sc++;
     }
+    foreach(aidx, a; species) {
+        writeln(aidx);
+        foreach(b; a) {
+            writeln("  ", b.nr);
+        }
+    }
+
+
 }

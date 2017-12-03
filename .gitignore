@@ -13,3 +13,4 @@ neat-test-*
 *.obj
 *.lst
 neat
+source/species

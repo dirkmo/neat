@@ -62,16 +62,16 @@ void printState(Individual ind) {
 
 void main()
 {
-    Population pop = new Population(20, 2, 1, false);
+    Population pop = new Population(100, 3, 1, false);
 
     float[][] patterns = [
-        [0, 0, 0],
-        [0, 1, 1],
-        [1, 0, 1],
-        [1, 1, 0],
+        [1, 0, 0, 0],
+        [1, 0, 1, 1],
+        [1, 1, 0, 1],
+        [1, 1, 1, 0],
     ];
 
-    foreach( gen; 0..10 ) {
+    foreach( gen; 0..1000 ) {
         writeln("============================");
         writeln("Generation ", gen);
         writefln("Nodes: %s, Cons: %s, Layers: %s",
@@ -82,10 +82,9 @@ void main()
             float totalError = 0;
             foreach( pc, p; patterns ) {
                 //writeln("Pattern ", pc);
-                float output = ind.propagate( p[0..2] )[0];
-                float error = p[2] - output;                
-                error = error * error;
-                totalError += error;
+                float output = ind.propagate( p[0..3] )[0];
+                float error = p[3] - output;
+                totalError += error*error;
                 //writefln("Output: %s", output);
             }
             ind.fitness = totalError;
@@ -97,25 +96,9 @@ void main()
     }
     foreach( pc, p; patterns ) {
         writeln("Pattern ", pc);
-        float output = pop.individuals[0].propagate( p[0..2] )[0];
-        float error = p[2] - output;                
+        float output = pop.individuals[0].propagate( p[0..3] )[0];
+        float error = p[3] - output;                
         error = error * error;
         writefln("Output: %s", output);
     }
-    printPhenotype(pop.individuals[0]);
-
-    ulong min, max;
-    float mind = 1000, maxd = 0;
-    foreach( idx, i; pop.individuals ) {
-        if( idx == 0 ) continue;
-        float d = pop.individuals[0].distance(i, 1, 1, 1);
-        if( mind > d ) {
-            min = idx; mind = d;
-        }
-        if( maxd < d ) {
-            max = idx; maxd = d;
-        }
-        writefln("%s: %s", idx, d);
-    }
-
 }
