@@ -8,8 +8,13 @@ import std.range;
 import std.stdio;
 import std.string;
 
+interface Medoid(T) {
+    float distance( Medoid m );
+    uint id() const @property;    
+}
+
 ///
-class Medoid {
+class Item : Medoid!Item {
     ///
     this( float pos ) {
         this.pos = pos;
@@ -17,9 +22,9 @@ class Medoid {
     }
 
     ///
-    float distance( Medoid m ) {
-        //Medoid it = cast(Medoid)m;
-        return abs(pos - m.pos);
+    float distance( Medoid!Item m ) {
+        Item it = cast(Item)m;
+        return abs(pos - it.pos);
     }
 
     ///
@@ -34,28 +39,28 @@ private:
 }
 
 ///
-class MedoidClassification {
+class MedoidClassification(T) {
     ///
-    class Cluster {
+    class Cluster(T) {
         ///
-        Medoid medoid;
+        Medoid!T medoid;
         ///
-        Medoid[] members;
+        Medoid!T[] members;
         ///
         float totalDistance = float.max;
     }
 
     ///
-    this( Medoid[] list, uint clusterCount, float thresh ) {
+    this( T[] list, uint clusterCount, float thresh ) {
         this.list = list;
         this.clusterCount = clusterCount;
         this.thresh = thresh;
         // randomly pick medoids
-        Medoid[] medoids;
+        T[] medoids;
         while( clusters.length < clusterCount ) {
-            Medoid m = list[uniform(0, $)];
+            T m = list[uniform(0, $)];
             if( !medoids.canFind!(l=>l.id == m.id)() ) {
-                auto newCluster = new Cluster();
+                auto newCluster = new Cluster!T();
                 newCluster.medoid = m;
                 clusters ~= newCluster;
                 medoids ~= m;
@@ -83,18 +88,19 @@ class MedoidClassification {
             }
             clusters[minIdx].members ~= it;
         }
+        
         findNewMedoids();
     }
 
     ///
     void findNewMedoids() {
-        foreach( cl; clusters ) {
+        foreach( cl; clusters ) {            
             float minDist = float.max;
-            Medoid newMediod;
+            T newMediod;
             foreach( m; cl.members ) {
                 const totalDist = calcTotalDistance( m, cl.members );
                 if( totalDist < minDist ) {
-                    newMediod = m;
+                    newMediod = cast(T)m;
                     minDist = totalDist;
                 }
             }
@@ -103,7 +109,7 @@ class MedoidClassification {
         }
     }
 
-    float calcTotalDistance( Medoid medoid, Medoid[] members ) {
+    float calcTotalDistance( Medoid!T medoid, Medoid!T[] members ) {
         float dist = 0;
         foreach(m; members) {
             dist += medoid.distance(m);
@@ -120,9 +126,9 @@ class MedoidClassification {
     }
 
     ///
-    Cluster[] clusters;
+    Cluster!T[] clusters;
     ///
-    Medoid[] list;
+    T[] list;
     ///
     uint clusterCount;
     ///
@@ -130,26 +136,26 @@ class MedoidClassification {
 }
 
 void main() {
-    Medoid[] liste;
+    Item[] liste;
     liste.length = 100;
     write("Liste: ");
     foreach( ref l; liste ) {
-        auto it = new Medoid(uniform(0.0f, 100.0f));
+        auto it = new Item(uniform(0.0f, 100.0f));
         l = it;
         writef("%s ", it.pos);
     }
     writeln();
 
-    auto kmc = new MedoidClassification( liste, 10, 1.0f );
+    auto kmc = new MedoidClassification!Item( liste, 10, 1.0f );
     float dist = float.max;
     uint i;
     while( kmc.getTotalDistance() < dist ) {
         dist = kmc.getTotalDistance();
         writeln("Durchgang ", i++);
         foreach(idx, c; kmc.clusters) {
-            writef("Cluster %s, Medoid: %s: ", idx, c.medoid.pos);
+            writef("Cluster %s, Medoid: %s: ", idx, (cast(Item)c.medoid).pos);
             foreach(m; c.members) {
-                writef("%s ", m.pos);
+                writef("%s ", (cast(Item)m).pos);
             }
             writeln();
         }
