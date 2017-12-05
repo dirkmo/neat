@@ -125,6 +125,16 @@ class MedoidClassification(T) {
         return dist;
     }
 
+    bool whichCluster( T item, out uint cluster ) {
+        foreach( idx, c; clusters ) {
+            if( c.members.canFind!(it=>it.id == item.id)() ) {
+                cluster = cast(uint)idx;
+                return true;
+            }
+        }
+        return false;
+    }
+
     ///
     Cluster!T[] clusters;
     ///
@@ -146,7 +156,7 @@ void main() {
     }
     writeln();
 
-    auto kmc = new MedoidClassification!Item( liste, 10, 1.0f );
+    auto kmc = new MedoidClassification!Item( liste, 10, float.nan );
     float dist = float.max;
     uint i;
     while( kmc.getTotalDistance() < dist ) {
