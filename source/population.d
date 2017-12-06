@@ -70,16 +70,7 @@ class Population {
     }
     
     void cluster(float dist) {
-        auto list = DList!Individual(individuals);
-        uint clusterCount = 1;
-        DList!Individual[] cluster;
-        cluster.length = 1;
-        uint i = uniform(0, cast(uint)individuals.length);
-        foreach(ind; individuals) {
-            if( individuals[i].distance(ind, 1.0, 1.0, 1.0) < dist ) {
-                //cluster[]
-            }
-        }
+
     }
 
 //private:

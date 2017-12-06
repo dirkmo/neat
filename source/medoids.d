@@ -144,7 +144,7 @@ class MedoidClassification(T) {
     ///
     float thresh;
 }
-
+/*
 void main() {
     Item[] liste;
     liste.length = 100;
@@ -173,4 +173,4 @@ void main() {
         writeln("Totaldistance: ", kmc.getTotalDistance());
     }
 }
-
+*/
