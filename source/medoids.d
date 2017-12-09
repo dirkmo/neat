@@ -8,11 +8,13 @@ import std.range;
 import std.stdio;
 import std.string;
 
+///
 interface Medoid(T) {
     float distance( Medoid m );
     uint id() const @property;    
 }
 
+/*
 ///
 class Item : Medoid!Item {
     ///
@@ -37,7 +39,7 @@ private:
     uint _id;
     static uint idCounter = 0;
 }
-
+*/
 ///
 class MedoidClassification(T) {
     ///
@@ -53,7 +55,6 @@ class MedoidClassification(T) {
     ///
     this( T[] list, uint clusterCount, float thresh ) {
         this.list = list;
-        this.clusterCount = clusterCount;
         this.thresh = thresh;
         // randomly pick medoids
         T[] medoids;
@@ -135,15 +136,21 @@ class MedoidClassification(T) {
         return false;
     }
 
+    T[] getCluster( uint idx ) {
+        T[] items = cast(T[])clusters[idx].members;
+        return items;
+    }
+
+    uint getClusterCount() @property { return cast(uint)clusters.length; }
+
     ///
     Cluster!T[] clusters;
     ///
     T[] list;
     ///
-    uint clusterCount;
-    ///
     float thresh;
 }
+
 /*
 void main() {
     Item[] liste;

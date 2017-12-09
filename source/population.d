@@ -2,6 +2,7 @@ module neat.population;
 
 import neat.genepool;
 import neat.individual;
+import neat.medoids;
 
 import std.algorithm;
 import std.container;
@@ -35,18 +36,36 @@ class Population {
     /// kill individuals with lowest fitness, fill up with
     /// offspring
     void selection() {
-        individuals.sort!( (a,b) => abs(a.fitness) < abs(b.fitness) )();
+        //individuals.sort!( (a,b) => abs(a.fitness) < abs(b.fitness) )();
+
+        auto species = new MedoidClassification!Individual(individuals, 5, float.nan);
+        float dist = float.max;
+        while( species.getTotalDistance() < dist ) {
+            dist = species.getTotalDistance();
+            species.doClustering();
+        }
+
+        foreach( clidx; 0..species.getClusterCount() ) {
+            auto ind = species.getCluster(clidx);
+            ind.sort!( (a,b) => abs(a.fitness) < abs(b.fitness) )();
+
+        }
+
+
+/*
         writefln("Best: %s, worst: %s, median: %s, average: %s", 
             individuals[0].fitness, individuals[$-1].fitness, individuals[$/2].fitness, average());
         uint survival = cast(uint)(individuals.length * survival_rate);
         uint oldLength = cast(uint)individuals.length;
         individuals.length = survival;
+
         uint i;
         while(individuals.length < oldLength ) {
-            uint p2 = uniform(0, survival);
+            const uint p2 = uniform(0, survival);
             auto offspring = individuals[i++].crossOver(individuals[p2]);
             individuals ~= offspring;
         }
+*/
     }
 
     void mutation() {
