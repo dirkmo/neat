@@ -49,7 +49,7 @@ class MedoidClassification(T) {
         ///
         Medoid!T[] members;
         ///
-        float totalDistance = float.max;
+        float meanDistance = float.max;
     }
 
     ///
@@ -99,31 +99,32 @@ class MedoidClassification(T) {
             float minDist = float.max;
             T newMediod;
             foreach( m; cl.members ) {
-                const totalDist = calcTotalDistance( m, cl.members );
-                if( totalDist < minDist ) {
+                const meanDist = calcMeanDistance( m, cl.members );
+                if( meanDist < minDist ) {
                     newMediod = cast(T)m;
-                    minDist = totalDist;
+                    minDist = meanDist;
                 }
             }
             cl.medoid = newMediod;
-            cl.totalDistance = minDist;
+            cl.meanDistance = minDist;
         }
     }
 
-    float calcTotalDistance( Medoid!T medoid, Medoid!T[] members ) {
+    float calcMeanDistance( Medoid!T medoid, Medoid!T[] members ) {
         float dist = 0;
         foreach(m; members) {
             dist += medoid.distance(m);
         }
-        return dist;
+        return dist / members.length;
     }
 
-    float getTotalDistance() {
+    /// sum of mean distances of clusters
+    float getMeanDistance() {
         float dist = 0;
         foreach(c; clusters) {
-            dist += c.totalDistance;
+            dist += c.meanDistance;
         }
-        return dist;
+        return dist / clusters.length;
     }
 
     bool whichCluster( T item, out uint cluster ) {
