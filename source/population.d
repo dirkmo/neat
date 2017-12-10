@@ -29,6 +29,7 @@ class Population {
     this( uint popsize, string topology, bool recurrent ) {
         pool = new Genepool(topology, recurrent);
         individuals.length = popsize;
+        this.popsize = popsize;        
         foreach( ref i; individuals ) { 
             i = new Individual( pool, true /*createConPhenotype*/ );
         }   
@@ -38,72 +39,55 @@ class Population {
     /// offspring
     void selection() {
         //individuals.sort!( (a,b) => abs(a.fitness) < abs(b.fitness) )();
-        auto species = new MedoidClassification!Individual(individuals, popsize / 10, float.nan);
-        float dist = float.max;
-        while( species.getMeanDistance() < dist ) {
-            dist = species.getMeanDistance();
-            species.doClustering();
-        }
 
-        uint biggestCluster, count;
-        Individual[][] clusters;
-        foreach( clidx; 0..species.getClusterCount() ) {
-            uint len = cast(uint)species.getCluster(clidx).length;
-            if( count < len ) {
-                count = len;
-                biggestCluster = clidx;
-            }
-            clusters ~= species.getCluster(clidx);
-        }
+        auto clusterAlgorithm = new MedoidClassification!Individual(individuals, popsize / 10, float.nan);
+        auto species = clusterAlgorithm.clusterAll();
+        //uint biggestSpeciesIdx = cast(uint)species.maxIndex!( (a,b) => a.length < b.length )();
+        /*
 
+        uint surplus;
 
-
-        uint surplus = individuals.length - popsize;
-        Individual[]
-        while( surplus-- ) {
-
-        }
-        species.getCluster(clidx)
-
-        Individual[][] newIndivduals;
-        foreach( clidx; 0..species.getClusterCount() ) {
-            auto ind = species.getCluster(clidx);
-            ind.sort!( (a,b) => abs(a.fitness) < abs(b.fitness) )();
-            uint survival = cast(uint)(ind.length * survival_rate);
-            uint oldLength = cast(uint)ind.length;
-            uint surplus;
+        Individual[][] newIndividuals;
+        foreach(idx, sp; species) {
+            Individual[] newInd;
+            sp.sort!( (a,b) => abs(a.fitness) < abs(b.fitness) )();
+            uint survival = cast(uint)(sp.length * survival_rate);
+            uint oldLength = cast(uint)sp.length;
             if( survival < 1 ) {
-                newIndivduals[clidx] ~= ind[0];
-                newIndivduals[clidx] ~= ind[0].crossOver( ind[0] );
+                newInd ~= sp[0];
+                newInd ~= sp[0].crossOver( sp[0] ); // clone
                 surplus++;
             } else {
+                // copy fittest
+                newInd.copy(sp[0..survival]);                
                 uint i;
-                ind.length = survival;
-                while(ind.length < oldLength) {
+                while(newInd.length < oldLength) {
                     const uint p2 = uniform(0, survival);
-                    auto offspring = ind[i++].crossOver(ind[p2]);
-                    ind ~= offspring;
+                    auto offspring = sp[i++].crossOver( sp[p2] );
+                    newInd ~= offspring;
                 }
-                newIndivduals ~= ind;
             }
+            newIndividuals ~= newInd;
         }
+        individuals.length = 0;
+        foreach(ni; newIndividuals) {
+            individuals ~= ni;
+        }
+        writeln("Count: ", individuals.length);
+*/
 
-        individuals = newIndivduals;
-
-/*
+           individuals.sort!( (a,b) => abs(a.fitness) < abs(b.fitness) )();
         writefln("Best: %s, worst: %s, median: %s, average: %s", 
             individuals[0].fitness, individuals[$-1].fitness, individuals[$/2].fitness, average());
         uint survival = cast(uint)(individuals.length * survival_rate);
         uint oldLength = cast(uint)individuals.length;
         individuals.length = survival;
-
         uint i;
         while(individuals.length < oldLength ) {
-            const uint p2 = uniform(0, survival);
+            uint p2 = uniform(0, survival);
             auto offspring = individuals[i++].crossOver(individuals[p2]);
             individuals ~= offspring;
         }
-*/
     }
 
     void mutation() {

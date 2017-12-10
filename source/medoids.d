@@ -70,6 +70,25 @@ class MedoidClassification(T) {
         doClustering();
     }
 
+    /// perform clustering until meanDistances is not improving anymode
+    /// return: clusters
+    T[][] clusterAll() {
+        float dist = float.max;
+        while( getMeanDistance() < dist ) {
+            dist = getMeanDistance();
+            doClustering();
+        }
+        T[][] clust;
+        foreach(c; clusters) {
+            T[] members;
+            foreach( m; c.members) {
+                members ~= cast(T)m;
+            }
+            clust ~= members;
+        }
+        return clust;
+    }
+
     ///
     void doClustering() {
         // clear all clusters, keep medoids
