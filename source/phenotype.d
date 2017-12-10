@@ -252,6 +252,8 @@ class Phenotype {
 
     /// fitness = 0 is best, the bigger the worse
     float fitness;
+    
+    uint species;
 
 //protected:
     Genepool pool;

@@ -1,65 +1,40 @@
 module neat.species;
 
-import std.algorithm;
-import std.container;
-import std.math;
-import std.random;
-import std.range;
+import neat.phenotype;
+
 import std.stdio;
+import std.typecons;
 
-class Individuum {
-    ulong nr;
-    float x;
-    float y;
-    float distance( Individuum i ) {
-        float dx = (x - i.x);
-        dx = dx*dx;
-        float dy = (y - i.y);
-        dy = dy*dy;
-        return sqrt(dx+dy);
+class SpeciesClassificator {
+    this() {
     }
-}
 
-
-
-void mainA() {
-    Individuum[10] ind;
-    foreach(idx, ref i; ind) {
-        i = new Individuum();
-        i.nr = idx;
-        i.x = uniform(-10.0f, 10.0f);
-        i.y = uniform(-10.0f, 10.0f);
-        writeln(i);
-    }
-    float thresh = 10.0f;
-
-    Individuum[][] species;
-    uint sc;
-    auto list = DList!Individuum(ind);
-
-    //delegate bool cmp(i) { return distance(ind[0], i) < thresh;};
-    while( !list.empty ) {
-        writefln("Length: %s", list[].walkLength());
-        auto range = list[];
-        auto reference = range.front;
-        while(!range.empty) {
-            if( reference.distance(range.front) < thresh ) {
-                if( sc >= species.length ) {
-                    species.length++;
-                }
-                species[sc] ~= range.front;
-                list.linearRemove(range.take(1));
+    uint assignSpecies(Phenotype[] individuals, float thresh) {
+        foreach(ref i; individuals) {
+            auto best = bestMatch(i);
+            if( best[0] > thresh ) {
+                prototypes ~= i.clone();
+                i.species = cast(uint)prototypes.length - 1;
+                writeln("Added species ", i.species);
+            } else {
+                i.species = best[1];
             }
-            range.popFront();
         }
-        sc++;
-    }
-    foreach(aidx, a; species) {
-        writeln(aidx);
-        foreach(b; a) {
-            writeln("  ", b.nr);
-        }
+        return cast(uint)prototypes.length;
     }
 
+    private auto bestMatch( Phenotype ind ) {
+        float bestDist = float.max;
+        uint bestIdx = uint.max;
+        foreach(idx, p; prototypes) {
+            float dist = ind.distance(ind, 1.0f, 1.0f, 0.5f );
+            if( dist < bestDist ) {
+                bestDist = dist;
+                bestIdx = cast(uint)idx;
+            }
+        }
+        return tuple(bestDist, bestIdx);
+    }
 
+    Phenotype[] prototypes;
 }

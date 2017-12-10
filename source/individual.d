@@ -2,7 +2,6 @@ module neat.individual;
 
 import neat.connection;
 import neat.genepool;
-import neat.medoids;
 import neat.node;
 import neat.phenotype;
 
@@ -11,11 +10,10 @@ import std.math;
 import std.stdio;
 
 ///
-class Individual : Phenotype, Medoid!Individual {
+class Individual : Phenotype {
     ///
     this( Genepool pool, bool createConnections ) {
         super( pool, createConnections );
-        _id = idCounter++;
     }
 
     ///
@@ -93,14 +91,6 @@ class Individual : Phenotype, Medoid!Individual {
         return output;
     }
 
-    float distance( Medoid!Individual m ) {
-        Individual it = cast(Individual)m;
-        return super.distance(it, 1.0, 1.0, 1.0 );
-    }
-
-    uint id() const @property {
-        return _id;
-    } 
 
 private:
     float activation( float x ) {
@@ -118,7 +108,4 @@ private:
               nodes[pool.inputs+pool.outputs].value = val;
         }
     }
-
-    uint _id;
-    static uint idCounter;
 }
