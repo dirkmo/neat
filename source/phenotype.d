@@ -44,6 +44,8 @@ class Phenotype {
             narr = nodes.find!(n=>n.id == nid2)();
             if( narr.length == 0 ) {
                 n2new = new Node(c.end.gene);
+            } else {
+                n2new = narr[0];
             }
             auto cg = new Connection( c.gene, n1new, n2new );
             newp.nodes ~= [n1new, n2new];
@@ -252,7 +254,7 @@ class Phenotype {
 
     /// fitness = 0 is best, the bigger the worse
     float fitness;
-    
+
     uint species;
 
 //protected:
