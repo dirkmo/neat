@@ -2,15 +2,18 @@ module neat.species;
 
 import neat.phenotype;
 
+import std.algorithm;
+import std.random;
+import std.range;
 import std.stdio;
 import std.typecons;
 
 class SpeciesClassificator {
-    this() {
-    }
-
-    uint assignSpecies(Phenotype[] individuals, float thresh) {
-        foreach(ref i; individuals) {
+    this( Phenotype[]* individuals, float thresh) {
+        this.individuals = individuals;
+        this.thresh = thresh;
+        prototypes ~= (*individuals)[0];
+        foreach(i; *individuals) {
             auto best = bestMatch(i);
             if( best[0] > thresh ) {
                 prototypes ~= i.clone();
@@ -20,8 +23,8 @@ class SpeciesClassificator {
                 i.species = best[1];
             }
         }
-        return cast(uint)prototypes.length;
     }
+
 
     private auto bestMatch( Phenotype ind ) {
         float bestDist = float.max;
@@ -36,5 +39,26 @@ class SpeciesClassificator {
         return tuple(bestDist, bestIdx);
     }
 
+    void updatePrototypes(Phenotype[] individuals) {
+        foreach( idx, ref proto; prototypes ) {
+            auto r = individuals.find!( i => i.species == idx )().array;
+            proto = r[uniform(0,$)];
+        }
+    }
+
+
+    float sharedFitness(uint species) {
+        auto members = (*individuals).filter!(i=>i.species == species)();
+        uint count;
+        float fitness;
+        foreach(m;members) {
+            fitness += m.fitness;
+            count++;
+        }
+        return fitness / count;
+    }
+
+    Phenotype[]* individuals;
     Phenotype[] prototypes;
+    float thresh;
 }

@@ -183,6 +183,7 @@ class Phenotype {
         }
         //writeln("cons.count = ", cons.length);
         offspring.nodes.sort!"a.id<b.id"();       
+        offsprint.species = -1;
         return offspring;
     }
 
@@ -255,7 +256,7 @@ class Phenotype {
     /// fitness = 0 is best, the bigger the worse
     float fitness;
 
-    uint species;
+    long species = -1;
 
 //protected:
     Genepool pool;

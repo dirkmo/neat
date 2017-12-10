@@ -6,6 +6,7 @@ import neat.phenotype;
 import neat.species;
 
 import std.algorithm;
+import std.array;
 import std.container;
 import std.stdio;
 import std.math;
@@ -24,7 +25,7 @@ class Population {
         foreach( ref i; individuals ) { 
             i = new Individual( pool, true /*createConPhenotype*/ );
         }
-        classificator = new SpeciesClassificator();
+        classificator = new SpeciesClassificator(cast(Phenotype[]*)&individuals);
     }
 
 
@@ -35,16 +36,17 @@ class Population {
         foreach( ref i; individuals ) { 
             i = new Individual( pool, true /*createConPhenotype*/ );
         }
-        classificator = new SpeciesClassificator();
+        classificator = new SpeciesClassificator(cast(Phenotype[]*)&individuals);
     }
 
     /// kill individuals with lowest fitness, fill up with offspring
     void selection() {
-        individuals.sort!( (a,b) => abs(a.fitness) < abs(b.fitness) )();
-        uint species = classificator.assignSpecies(cast(Phenotype[])individuals, 10.0f);
+        uint species = classificator.assignSpecies(10.0f);
         foreach( s; 0..species ) {
-            auto members = individuals.filter!(i=>i.species == s)();
-            
+            auto members = individuals.filter!(i=>i.species == s)().array;
+            if( members.length > 1 ) {
+            } else {
+            }
         }
     }
 
