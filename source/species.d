@@ -63,20 +63,24 @@ class SpeciesClassificator {
 
     /// calculate total fitness sum over all individuals
     float totalFitness(Individual[] individuals) {
+        //writeln(__FUNCTION__);
         float totalFitness = 0.0f;
         foreach(ind; individuals) {
             totalFitness += sharedFitness(ind, individuals, ind.species);
         }
+        //writeln("totalFitness: ", totalFitness);
         return totalFitness;
     }
 
     /// calculate fitness of species as a whole
     float speciesFitness(Individual[] individuals, uint species) {
+        //writeln(__FUNCTION__);
         assert( species < prototypes.length );
         // calculate total fitness sum over all individuals
         float speciesFitness = 0.0f;
         individuals.filter!(i=>i.species == species)
                    .each!(m => speciesFitness += sharedFitness(m, individuals, species));
+        //writeln("speciesFitness: ", speciesFitness);
         return speciesFitness;
     }
 
@@ -99,6 +103,7 @@ private:
                 bestIdx = cast(uint)idx;
             }
         }
+        writeln("Dist: ", bestDist);
         return tuple(bestDist, bestIdx);
     }
 

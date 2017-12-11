@@ -43,6 +43,7 @@ class Population {
     void selection() {
         Individual[] newIndividuals;
         float totalFitness = classificator.totalFitness(individuals);
+        writefln("Totalfitness: %s", totalFitness);
         float[] speciesFitness;
 
         // remove weakest members from species and fill up with new offspring.
@@ -53,7 +54,8 @@ class Population {
             // sort by fitness
             speciesMembers.sort!( (a, b) => a.fitness < b.fitness );
             // get fitness of species
-            speciesFitness[speciesIdx] = classificator.speciesFitness(individuals, speciesIdx);
+            speciesFitness ~= classificator.speciesFitness(individuals, speciesIdx);
+            writefln("SpeciesFitness %s: %s", speciesIdx, speciesFitness[$-1]);
             // save members count of this species
             const uint oldlen = cast(uint)speciesMembers.length;
             // change species member count according to species fitness in relation to population fitness
