@@ -46,26 +46,39 @@ class Population {
         float[] speciesFitness;
 
         // remove weakest members from species and fill up with new offspring.
-        // Member count of a species is dependend of shared fitness.
+        // Member count of a species is dependend on shared fitness.
         foreach( speciesIdx; 0..classificator.numberOfSpecies ) {
             // get all members of this species
             auto speciesMembers = individuals.filter!(i => i.species == speciesIdx).array;
+            // sort by fitness
             speciesMembers.sort!( (a, b) => a.fitness < b.fitness );
+            // get fitness of species
             speciesFitness[speciesIdx] = classificator.speciesFitness(individuals, speciesIdx);
+            // save members count of this species
             const uint oldlen = cast(uint)speciesMembers.length;
-            // change species member count according to fitnesss
+            // change species member count according to species fitness in relation to population fitness
             speciesMembers.length = cast(uint)(popsize * speciesFitness[speciesIdx] / totalFitness);
-
-            if( speciesMembers.length < oldlen ) {
-                
+            // create offspring from parent1 and parent2
+            uint parent1, parent2;
+            uint survival;
+            if( oldlen >= speciesMembers.length ) {
+                // member count does not grow
+                survival = cast(uint)(speciesMembers.length * survival_rate);
             } else {
-
+                // member count grows
+                survival = cast(uint)(oldlen * survival_rate);
             }
-
+            // [0..survival] survive, [survival..speciesMembers.length) replaced by new offspring
+            for( uint i = survival; i < speciesMembers.length; i++ ) {
+                // parent2 is randomly picked
+                parent2 = uniform(0, survival);
+                speciesMembers[i] = speciesMembers[parent1].crossOver(speciesMembers[parent2]);
+                parent1++; // parent1 just counting up
+            }
             newIndividuals ~= speciesMembers;
         }
-
         individuals = newIndividuals;
+        writeln("Individual count: ", individuals.length);
         classificator.updatePrototypes(cast(Phenotype[])individuals);
     }
 

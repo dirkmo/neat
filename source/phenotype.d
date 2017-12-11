@@ -183,7 +183,7 @@ class Phenotype {
         }
         //writeln("cons.count = ", cons.length);
         offspring.nodes.sort!"a.id<b.id"();       
-        offsprint.species = -1;
+        offspring.species = -1;
         return offspring;
     }
 
