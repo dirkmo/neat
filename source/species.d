@@ -25,8 +25,32 @@ class SpeciesClassificator {
         }
     }
 
+    void updatePrototypes() {
+        foreach( idx, ref proto; prototypes ) {
+            auto r = (*individuals).find!( i => i.species == idx ).array;
+            proto = r[uniform(0,$)];
+        }
+    }
 
-    private auto bestMatch( Phenotype ind ) {
+
+    float sharedFitness(uint species) {
+        auto members = (*individuals).filter!(i=>i.species == species);
+        uint count;
+        float fitness;
+        foreach(m;members) {
+            fitness += m.fitness;
+            count++;
+        }
+        return fitness / count;
+    }
+
+    uint numberOfSpecies() @property {
+        return cast(uint)prototypes.length;
+    }
+
+private:
+
+    auto bestMatch( Phenotype ind ) {
         float bestDist = float.max;
         uint bestIdx = uint.max;
         foreach(idx, p; prototypes) {
@@ -37,25 +61,6 @@ class SpeciesClassificator {
             }
         }
         return tuple(bestDist, bestIdx);
-    }
-
-    void updatePrototypes(Phenotype[] individuals) {
-        foreach( idx, ref proto; prototypes ) {
-            auto r = individuals.find!( i => i.species == idx )().array;
-            proto = r[uniform(0,$)];
-        }
-    }
-
-
-    float sharedFitness(uint species) {
-        auto members = (*individuals).filter!(i=>i.species == species)();
-        uint count;
-        float fitness;
-        foreach(m;members) {
-            fitness += m.fitness;
-            count++;
-        }
-        return fitness / count;
     }
 
     Phenotype[]* individuals;

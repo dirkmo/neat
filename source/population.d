@@ -25,7 +25,7 @@ class Population {
         foreach( ref i; individuals ) { 
             i = new Individual( pool, true /*createConPhenotype*/ );
         }
-        classificator = new SpeciesClassificator(cast(Phenotype[]*)&individuals);
+        classificator = new SpeciesClassificator(cast(Phenotype[]*)&individuals, 10.0f);
     }
 
 
@@ -36,18 +36,19 @@ class Population {
         foreach( ref i; individuals ) { 
             i = new Individual( pool, true /*createConPhenotype*/ );
         }
-        classificator = new SpeciesClassificator(cast(Phenotype[]*)&individuals);
+        classificator = new SpeciesClassificator(cast(Phenotype[]*)&individuals, 10.0f);
     }
 
     /// kill individuals with lowest fitness, fill up with offspring
     void selection() {
-        uint species = classificator.assignSpecies(10.0f);
-        foreach( s; 0..species ) {
+        foreach( s; 0..classificator.numberOfSpecies ) {
             auto members = individuals.filter!(i=>i.species == s)().array;
             if( members.length > 1 ) {
             } else {
             }
         }
+
+        classificator.updatePrototypes();
     }
 
     void mutation() {
