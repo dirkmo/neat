@@ -9,11 +9,10 @@ import std.stdio;
 import std.typecons;
 
 class SpeciesClassificator {
-    this( Phenotype[]* individuals, float thresh) {
-        this.individuals = individuals;
+    this( Phenotype[] individuals, float thresh) {
         this.thresh = thresh;
-        prototypes ~= (*individuals)[0];
-        foreach(i; *individuals) {
+        prototypes ~= individuals[0];
+        foreach(i; individuals) {
             auto best = bestMatch(i);
             if( best[0] > thresh ) {
                 prototypes ~= i.clone();
@@ -25,16 +24,16 @@ class SpeciesClassificator {
         }
     }
 
-    void updatePrototypes() {
+    void updatePrototypes(Phenotype[] individuals) {
         foreach( idx, ref proto; prototypes ) {
-            auto r = (*individuals).find!( i => i.species == idx ).array;
+            auto r = individuals.find!( i => i.species == idx ).array;
             proto = r[uniform(0,$)];
         }
     }
 
 
-    float sharedFitness(uint species) {
-        auto members = (*individuals).filter!(i=>i.species == species);
+    float sharedFitness(Phenotype[] individuals, uint species) {
+        auto members = individuals.filter!(i=>i.species == species);
         uint count;
         float fitness;
         foreach(m;members) {
@@ -63,7 +62,6 @@ private:
         return tuple(bestDist, bestIdx);
     }
 
-    Phenotype[]* individuals;
     Phenotype[] prototypes;
     float thresh;
 }

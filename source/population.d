@@ -25,7 +25,7 @@ class Population {
         foreach( ref i; individuals ) { 
             i = new Individual( pool, true /*createConPhenotype*/ );
         }
-        classificator = new SpeciesClassificator(cast(Phenotype[]*)&individuals, 10.0f);
+        classificator = new SpeciesClassificator(cast(Phenotype[])individuals, 10.0f);
     }
 
 
@@ -36,7 +36,7 @@ class Population {
         foreach( ref i; individuals ) { 
             i = new Individual( pool, true /*createConPhenotype*/ );
         }
-        classificator = new SpeciesClassificator(cast(Phenotype[]*)&individuals, 10.0f);
+        classificator = new SpeciesClassificator(cast(Phenotype[])individuals, 10.0f);
     }
 
     /// kill individuals with lowest fitness, fill up with offspring
@@ -48,7 +48,7 @@ class Population {
             }
         }
 
-        classificator.updatePrototypes();
+        classificator.updatePrototypes(cast(Phenotype[])individuals);
     }
 
     void mutation() {
