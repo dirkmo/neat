@@ -15,19 +15,9 @@ class SpeciesClassificator {
     this( Phenotype[] individuals, float thresh) {
         this.thresh = thresh;
         // randomly pick first individual as prototype for species #0.
-        prototypes ~= individuals[0];
+        prototypes ~= individuals[0].clone();
         foreach(i; individuals) {
-            auto best = bestMatch(i);
-            if( best[0] > thresh ) {
-                // individual i does not fit well into any species. Create new
-                // species with i as prototype.
-                prototypes ~= i.clone();
-                i.species = cast(uint)prototypes.length - 1;
-                writeln("Added species ", i.species);
-            } else {
-                // individual i fits into species
-                i.species = best[1];
-            }
+            determineSpecies(i, individuals);
         }
     }
 
@@ -46,6 +36,25 @@ class SpeciesClassificator {
 
     void updatePrototypes(Individual[] individuals) {
         updatePrototypes( cast(Phenotype[])individuals );
+    }
+
+    uint determineSpecies(Phenotype ind, Phenotype[] individuals) {
+        auto best = bestMatch(ind);
+        if( best[0] > thresh ) {
+            // individual i does not fit well into any species. Create new
+            // species with i as prototype.
+            prototypes ~= ind.clone();
+            ind.species = cast(uint)prototypes.length - 1;
+            writeln("Added species ", ind.species);
+        } else {
+            // individual i fits into species
+            ind.species = best[1];
+        }
+        return ind.species;
+    }
+
+    uint determineSpecies(Individual ind, Individual[] individuals) {
+        return determineSpecies(cast(Phenotype)ind, cast(Phenotype[])individuals);
     }    
 
     /// shared fitness: Individuals' fitness is reduced by number of members in
@@ -97,7 +106,7 @@ private:
         float bestDist = float.max;
         uint bestIdx = uint.max;
         foreach(idx, p; prototypes) {
-            float dist = ind.distance(ind, 1.0f, 1.0f, 0.5f );
+            float dist = ind.distance(p, 1.0f, 1.0f, 0.5f );
             if( dist < bestDist ) {
                 bestDist = dist;
                 bestIdx = cast(uint)idx;

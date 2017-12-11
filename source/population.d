@@ -25,7 +25,7 @@ class Population {
         foreach( ref i; individuals ) { 
             i = new Individual( pool, true /*createConPhenotype*/ );
         }
-        classificator = new SpeciesClassificator(cast(Phenotype[])individuals, 10.0f);
+        classificator = new SpeciesClassificator(cast(Phenotype[])individuals, 2.0f);
     }
 
 
@@ -36,7 +36,7 @@ class Population {
         foreach( ref i; individuals ) { 
             i = new Individual( pool, true /*createConPhenotype*/ );
         }
-        classificator = new SpeciesClassificator(cast(Phenotype[])individuals, 10.0f);
+        classificator = new SpeciesClassificator(cast(Phenotype[])individuals, 2.0f);
     }
 
     /// kill individuals with lowest fitness, fill up with offspring
@@ -72,9 +72,15 @@ class Population {
             }
             // [0..survival] survive, [survival..speciesMembers.length) replaced by new offspring
             for( uint i = survival; i < speciesMembers.length; i++ ) {
-                // parent2 is randomly picked
-                parent2 = uniform(0, survival);
+                if( survival == 0 ) {
+                    hier weiter
+                    
+                } else {
+                    // parent2 is randomly picked
+                    parent2 = uniform(0, survival);
+                }
                 speciesMembers[i] = speciesMembers[parent1].crossOver(speciesMembers[parent2]);
+                classificator.determineSpecies(speciesMembers[i], individuals);
                 parent1++; // parent1 just counting up
             }
             newIndividuals ~= speciesMembers;
