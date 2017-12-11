@@ -41,13 +41,31 @@ class Population {
 
     /// kill individuals with lowest fitness, fill up with offspring
     void selection() {
-        foreach( s; 0..classificator.numberOfSpecies ) {
-            auto members = individuals.filter!(i=>i.species == s)().array;
-            if( members.length > 1 ) {
+        Individual[] newIndividuals;
+        float totalFitness = classificator.totalFitness(individuals);
+        float[] speciesFitness;
+
+        // remove weakest members from species and fill up with new offspring.
+        // Member count of a species is dependend of shared fitness.
+        foreach( speciesIdx; 0..classificator.numberOfSpecies ) {
+            // get all members of this species
+            auto speciesMembers = individuals.filter!(i => i.species == speciesIdx).array;
+            speciesMembers.sort!( (a, b) => a.fitness < b.fitness );
+            speciesFitness[speciesIdx] = classificator.speciesFitness(individuals, speciesIdx);
+            const uint oldlen = cast(uint)speciesMembers.length;
+            // change species member count according to fitnesss
+            speciesMembers.length = cast(uint)(popsize * speciesFitness[speciesIdx] / totalFitness);
+
+            if( speciesMembers.length < oldlen ) {
+                
             } else {
+
             }
+
+            newIndividuals ~= speciesMembers;
         }
 
+        individuals = newIndividuals;
         classificator.updatePrototypes(cast(Phenotype[])individuals);
     }
 

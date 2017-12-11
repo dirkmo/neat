@@ -91,7 +91,6 @@ class Individual : Phenotype {
         return output;
     }
 
-
 private:
     float activation( float x ) {
         //return 1.0f / ( 1.0f + exp(-x) );

@@ -1,5 +1,6 @@
 module neat.species;
 
+import neat.individual;
 import neat.phenotype;
 
 import std.algorithm;
@@ -30,6 +31,11 @@ class SpeciesClassificator {
         }
     }
 
+    ///
+    this( Individual[] individuals, float thresh) {
+        this(cast(Phenotype[])individuals, thresh);
+    }
+
     /// chose a random member of species as prototype for that species
     void updatePrototypes(Phenotype[] individuals) {
         foreach( idx, ref proto; prototypes ) {
@@ -38,6 +44,10 @@ class SpeciesClassificator {
         }
     }
 
+    void updatePrototypes(Individual[] individuals) {
+        updatePrototypes( cast(Phenotype[])individuals );
+    }    
+
     /// shared fitness: Individuals' fitness is reduced by number of members in
     /// its species. This is done to prevent a single species becoming too
     /// dominant in numbers.
@@ -45,6 +55,29 @@ class SpeciesClassificator {
         // TODO: Save number of members in the species to prevent counting it again
         auto members = individuals.filter!(i=>i.species == species);
         return ind.fitness / members.walkLength();
+    }
+
+    float sharedFitness(Individual ind, Individual[] individuals, uint species) {
+        return sharedFitness(cast(Phenotype)ind, cast(Phenotype[])individuals, species);
+    }
+
+    /// calculate total fitness sum over all individuals
+    float totalFitness(Individual[] individuals) {
+        float totalFitness = 0.0f;
+        foreach(ind; individuals) {
+            totalFitness += sharedFitness(ind, individuals, ind.species);
+        }
+        return totalFitness;
+    }
+
+    /// calculate fitness of species as a whole
+    float speciesFitness(Individual[] individuals, uint species) {
+        assert( species < prototypes.length );
+        // calculate total fitness sum over all individuals
+        float speciesFitness = 0.0f;
+        individuals.filter!(i=>i.species == species)
+                   .each!(m => speciesFitness += sharedFitness(m, individuals, species));
+        return speciesFitness;
     }
 
     /// get number of species

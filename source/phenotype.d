@@ -13,7 +13,7 @@ import std.stdio;
 
 class Phenotype {
 
-    this() @disable {};
+    this() @disable {}
 
     this( Genepool pool, bool createConnections ) {
         this.pool = pool;
@@ -256,7 +256,7 @@ class Phenotype {
     /// fitness = 0 is best, the bigger the worse
     float fitness;
 
-    long species = -1;
+    uint species;
 
 //protected:
     Genepool pool;
