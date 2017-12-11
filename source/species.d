@@ -32,15 +32,9 @@ class SpeciesClassificator {
     }
 
 
-    float sharedFitness(Phenotype[] individuals, uint species) {
+    float sharedFitness(Phenotype ind, Phenotype[] individuals, uint species) {
         auto members = individuals.filter!(i=>i.species == species);
-        uint count;
-        float fitness;
-        foreach(m;members) {
-            fitness += m.fitness;
-            count++;
-        }
-        return fitness / count;
+        return ind.fitness / members.walkLength();
     }
 
     uint numberOfSpecies() @property {
