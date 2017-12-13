@@ -92,9 +92,7 @@ class Population {
             newIndividuals ~= speciesMembers;
         }
 
-        foreach( ext; extinction ) {
-            classificator.extinction(ext);
-        }
+        classificator.extinction(extinction);
 
         individuals = newIndividuals;
         writeln("Individual count: ", individuals.length);

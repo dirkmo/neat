@@ -14,7 +14,7 @@ class SpeciesClassificator {
     /// Constructor: Classify individuals into species.
     this( Phenotype[] individuals, float thresh) {
         this.thresh = thresh;
-        // randomly pick first individual as prototype for species #0.
+        // pick first individual as prototype for species #0.
         prototypes ~= individuals[0].clone();
         foreach(i; individuals) {
             determineSpecies(i, individuals);
@@ -29,7 +29,7 @@ class SpeciesClassificator {
     /// chose a random member of species as prototype for that species
     void updatePrototypes(Phenotype[] individuals) {
         foreach( idx, ref proto; prototypes ) {
-            auto r = individuals.find!( i => i.species == idx ).array;
+            auto r = individuals.find!( i => i.species == idx );
             proto = r[uniform(0,$)];
         }
     }
@@ -97,9 +97,19 @@ class SpeciesClassificator {
         return speciesFitness;
     }
 
-    /// delete species
-    void extinction( uint species ) {
-        //TODO
+    /// delete species and reassign species ids
+    /// this will delete only the prototype, but not the individuals belonging
+    /// to that species.
+    void extinction( uint[] species ) {
+        foreach( sp; species ) {
+            if( sp == 0 ) {
+                prototypes = prototypes[1..$];
+            } else if( sp == cast(uint)prototypes.length-1 ) {
+                prototypes = prototypes[0..sp];
+            } else {
+                prototypes = prototypes[0..sp] ~ prototypes[sp+1..$];
+            }
+        }
     }
 
     /// get number of species
@@ -115,7 +125,7 @@ private:
         float bestDist = float.max;
         uint bestIdx = uint.max;
         foreach(idx, p; prototypes) {
-            float dist = ind.distance(p, 1.0f, 1.0f, 0.5f );
+            float dist = ind.distance(p, cExcess, cDisjunct, cWeight );
             if( dist < bestDist ) {
                 bestDist = dist;
                 bestIdx = cast(uint)idx;
@@ -127,4 +137,8 @@ private:
 
     Phenotype[] prototypes;
     float thresh;
+
+    enum cExcess = 1.0f;
+    enum cDisjunct = 1.0f;
+    enum cWeight = 0.4f;
 }
