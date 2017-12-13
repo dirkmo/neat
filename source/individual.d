@@ -17,6 +17,38 @@ class Individual : Phenotype {
     }
 
     ///
+    this( Phenotype p ) {
+        foreach( c; p.cons ) {
+            auto nid1 = c.start.id;
+            auto nid2 = c.end.id;
+
+            Node n1new, n2new;
+            auto narr = nodes.find!(n=>n.id == nid1)();
+            if ( narr.length == 0 ) {
+                n1new = new Node(c.start.gene);
+            } else {
+                n1new = narr[0];
+            }
+            narr = nodes.find!(n=>n.id == nid2)();
+            if( narr.length == 0 ) {
+                n2new = new Node(c.end.gene);
+            } else {
+                n2new = narr[0];
+            }
+            auto cg = new Connection( c.gene, n1new, n2new );
+            nodes ~= [n1new, n2new];
+            cons ~= cg;
+        }
+        this.fitness = p.fitness;
+        this.species = p.species;
+        this.pool = p.pool;
+    }
+
+    this( Individual i ) {
+        this( cast(Phenotype)i );
+    }
+
+    ///
     const(float)[] propagateStep( in float[] inputValues ) {
         assert( inputValues.length == pool.inputs );
         // copy values into input nodes

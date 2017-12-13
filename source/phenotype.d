@@ -13,7 +13,8 @@ import std.stdio;
 
 class Phenotype {
 
-    this() @disable {}
+    this() {
+    }
 
     this( Genepool pool, bool createConnections ) {
         this.pool = pool;
