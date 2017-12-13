@@ -12,10 +12,10 @@ import std.typecons;
 
 struct SpeciesData {
     uint index;
-    uint memberCount;
-    uint nextMemberCount;
-    float fitness;
-    Individual prototype;
+    uint memberCount; // current member count
+    uint nextMemberCount; // member count for next generation
+    float fitness; // fitness sum over all members (no average)
+    Individual prototype; // the species representative
 }
 
 class SpeciesClassificator {
@@ -25,6 +25,9 @@ class SpeciesClassificator {
         update(individuals);
     }
 
+    /// look for individuals without an assigned species
+    /// and assign them to a species. If nearest species
+    /// exceeds the threshold, a new species is created.
     void update(Individual[] individuals) {
         this.individuals = individuals;
         foreach(ind; individuals) {
@@ -41,6 +44,51 @@ class SpeciesClassificator {
             }
         }
     }
+
+    /// pick new species prototypes and reassign individuals to
+    /// nearest species.
+    void reassign() {
+        // choose new prototypes
+        foreach( sp; species ) {
+            sp.memberCount = 0;
+            auto members = individuals.filter!(a => a.species == sp.index).array;
+            sp.prototype = new Individual(members[uniform(0,$)]);
+        }
+        // assign members to species
+        foreach(ind; individuals) {
+            // no species assigned yet
+            auto best = bestMatch(ind);
+            if( best[0] < thresh ) {
+                ind.species = best[1];
+                addToSpecies(ind);
+            } else {
+                // new species
+                species ~= SpeciesData(cast(uint)species.length, 1, 1, 0, new Individual(ind));
+            }
+        }
+    }
+
+    /// calculate fitness of species and total sum
+    void calculateFitness() {
+        uint count;
+        totalFitness = 0;
+        foreach(ref sp; species) {
+            sp.fitness = 0;
+            individuals.filter!(a => a.species == sp.index)
+                       .each!(b => sp.fitness += b.fitness);
+            totalFitness += sp.fitness;
+            count += sp.memberCount;
+        }
+        assert(count == individuals.length, "ERROR: Not all individuals assigned a species!");
+    }
+
+    /// Calculate size of species regarding sharedfitness
+    void calculateNetGenSpeciesSize() {
+        foreach(sp; species) {
+            hier weiter
+        }        
+    }
+
 
 private:
 
@@ -62,12 +110,16 @@ private:
 
     void addToSpecies( Individual ind ) {
         auto s = species.find!( a => a.index == ind.species );
+        assert( !s.empty );
+        s.front.memberCount++;
     }
 
     Individual[] individuals;
 
     SpeciesData[] species;
     float thresh;
+
+    float totalFitness;
 
     enum cExcess = 1.0f;
     enum cDisjunct = 1.0f;

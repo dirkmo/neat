@@ -44,8 +44,11 @@ class Population {
         Individual[] newIndividuals;
 
         speciesClassificator.update(individuals);
+        speciesClassificator.calculateFitness();
+
 
         individuals = newIndividuals;
+        speciesClassificator.reassign();
         writeln("Individual count: ", individuals.length);
     }
 
