@@ -45,6 +45,7 @@ class Population {
         float totalFitness = classificator.totalFitness(individuals);
         writefln("Totalfitness: %s", totalFitness);
         float[] speciesFitness;
+        uint[] extinction;
 
         // remove weakest members from species and fill up with new offspring.
         // Member count of a species is dependend on shared fitness.
@@ -73,8 +74,13 @@ class Population {
             // [0..survival] survive, [survival..speciesMembers.length) replaced by new offspring
             for( uint i = survival; i < speciesMembers.length; i++ ) {
                 if( survival == 0 ) {
-                    hier weiter
-                    
+                    if( speciesMembers.length < 3 ) {
+                        // species goes extinct
+                        extinction ~= speciesIdx;
+                    } else {
+                        
+                    }
+                    writeln("survival==0, length: ", speciesMembers.length);                    
                 } else {
                     // parent2 is randomly picked
                     parent2 = uniform(0, survival);
@@ -85,6 +91,11 @@ class Population {
             }
             newIndividuals ~= speciesMembers;
         }
+
+        foreach( ext; extinction ) {
+            classificator.extinction(ext);
+        }
+
         individuals = newIndividuals;
         writeln("Individual count: ", individuals.length);
         classificator.updatePrototypes(cast(Phenotype[])individuals);

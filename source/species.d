@@ -34,10 +34,12 @@ class SpeciesClassificator {
         }
     }
 
+    /// pick new prototypes
     void updatePrototypes(Individual[] individuals) {
         updatePrototypes( cast(Phenotype[])individuals );
     }
 
+    /// determine species for ind
     uint determineSpecies(Phenotype ind, Phenotype[] individuals) {
         auto best = bestMatch(ind);
         if( best[0] > thresh ) {
@@ -53,6 +55,7 @@ class SpeciesClassificator {
         return ind.species;
     }
 
+    /// determine species for ind
     uint determineSpecies(Individual ind, Individual[] individuals) {
         return determineSpecies(cast(Phenotype)ind, cast(Phenotype[])individuals);
     }    
@@ -66,6 +69,7 @@ class SpeciesClassificator {
         return ind.fitness / members.walkLength();
     }
 
+    /// get shared fitness for ind
     float sharedFitness(Individual ind, Individual[] individuals, uint species) {
         return sharedFitness(cast(Phenotype)ind, cast(Phenotype[])individuals, species);
     }
@@ -91,6 +95,11 @@ class SpeciesClassificator {
                    .each!(m => speciesFitness += sharedFitness(m, individuals, species));
         //writeln("speciesFitness: ", speciesFitness);
         return speciesFitness;
+    }
+
+    /// delete species
+    void extinction( uint species ) {
+        //TODO
     }
 
     /// get number of species
