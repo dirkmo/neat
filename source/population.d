@@ -41,11 +41,11 @@ class Population {
 
     /// kill individuals with lowest fitness
     void selection() {
-        Individual[] newIndividuals;
-
         speciesClassificator.update(individuals);
         speciesClassificator.calculateFitness();
+        speciesClassificator.calculateNextGenSpeciesSize(popsize);
 
+        Individual[] newIndividuals;
 
         individuals = newIndividuals;
         speciesClassificator.reassign();

@@ -13,7 +13,7 @@ import std.typecons;
 struct SpeciesData {
     uint index;
     uint memberCount; // current member count
-    uint nextMemberCount; // member count for next generation
+    uint nextGenMemberCount; // member count for next generation
     float fitness; // fitness sum over all members (no average)
     Individual prototype; // the species representative
 }
@@ -82,11 +82,28 @@ class SpeciesClassificator {
         assert(count == individuals.length, "ERROR: Not all individuals assigned a species!");
     }
 
-    /// Calculate size of species regarding sharedfitness
-    void calculateNetGenSpeciesSize() {
+    /// Calculate size of species regarding shared fitness for next generation.
+    /// totalFitness has to be determined in prior by calculateFitness()
+    void calculateNextGenSpeciesSize(uint popsize) {
+        uint nextGenPopSize;
         foreach(sp; species) {
-            hier weiter
-        }        
+            sp.nextGenMemberCount = cast(uint)(popsize * sp.fitness / totalFitness);
+            nextGenPopSize += sp.nextGenMemberCount;
+        }
+        // distribute remaining "free slots" over species sorted by fitness
+        long rest = popsize - nextGenPopSize;
+        if( rest > 0 ) {
+            species.sort!( (a,b) => a.fitness < b.fitness );
+            do {
+                foreach(sp; species) {
+                    sp.nextGenMemberCount++;
+                    if( --rest == 0 ) {
+                        break;
+                    }
+                }
+            } while(rest > 0);
+        }
+        assert(rest == 0);
     }
 
 
