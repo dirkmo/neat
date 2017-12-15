@@ -164,7 +164,7 @@ class Phenotype {
             } else {
                 // both parents p1 and p2 have the gene
                 //writefln("both: %s", i.innovation);
-                c = fitness < p2.fitness ? i : range.front;
+                c = fitness > p2.fitness ? i : range.front;
                 // and remove connection from list lcp2
                 lcp2.linearRemove(range.take(1));
                 //writeln("Length: ", lcp2.array().length);
@@ -254,7 +254,7 @@ class Phenotype {
         con.enabled = c.enabled;
     }
 
-    /// fitness = 0 is best, the bigger the worse
+    /// fitness = 0 is worst, the bigger the better
     float fitness;
 
     uint species = uint.max;

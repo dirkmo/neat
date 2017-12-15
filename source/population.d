@@ -39,10 +39,14 @@ class Population {
         speciesClassificator = new SpeciesClassificator(individuals, SpeciesThreshold);
     }
 
-    /// kill individuals with lowest fitness
+    /// kill individuals with lowest fitness and fill up empty spaces with
+    /// new offspring
     void selection() {
+        // check that all individuals belong to a species
         speciesClassificator.update(individuals);
+        // calculate fitness of species
         speciesClassificator.calculateFitness();
+        // calculate size of species for the next generation
         speciesClassificator.calculateNextGenSpeciesSize(popsize);
 
         Individual[] newIndividuals;

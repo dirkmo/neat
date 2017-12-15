@@ -15,7 +15,12 @@ struct SpeciesData {
     uint memberCount; // current member count
     uint nextGenMemberCount; // member count for next generation
     float fitness; // fitness sum over all members (no average)
+    float scale; // new species are scaled down at first
     Individual prototype; // the species representative
+
+    float sharedFitness() {
+        return fitness / memberCount;
+    }
 }
 
 class SpeciesClassificator {
@@ -23,6 +28,9 @@ class SpeciesClassificator {
     this(Individual[] individuals, float thresh) {
         this.thresh = thresh;
         update(individuals);
+        foreach(sp; species) {
+            sp.scale = 1.0f;
+        }
     }
 
     /// look for individuals without an assigned species
@@ -39,7 +47,14 @@ class SpeciesClassificator {
                     addToSpecies(ind);
                 } else {
                     // new species
-                    species ~= SpeciesData(cast(uint)species.length, 1, 1, 0, new Individual(ind));
+                    species ~= SpeciesData(
+                        cast(uint)species.length, // index
+                        1, // memberCount
+                        1, // nextGenMemberCount
+                        0.0, // fitness
+                        NEW_SPECIES_SCALE, // scale
+                        new Individual(ind) // prototype
+                    );
                 }
             }
         }
@@ -63,7 +78,7 @@ class SpeciesClassificator {
                 addToSpecies(ind);
             } else {
                 // new species
-                species ~= SpeciesData(cast(uint)species.length, 1, 1, 0, new Individual(ind));
+                species ~= SpeciesData(cast(uint)species.length, 1, 1, 0.0, NEW_SPECIES_SCALE, new Individual(ind));
             }
         }
     }
@@ -87,13 +102,20 @@ class SpeciesClassificator {
     void calculateNextGenSpeciesSize(uint popsize) {
         uint nextGenPopSize;
         foreach(sp; species) {
-            sp.nextGenMemberCount = cast(uint)(popsize * sp.fitness / totalFitness);
+            sp.nextGenMemberCount = cast(uint)(popsize * sp.sharedFitness() * sp.scale / sharedFitness());
+            if( sp.nextGenMemberCount < NEW_SPECIES_MEMBERS_MIN ) {
+                sp.nextGenMemberCount = NEW_SPECIES_MEMBERS_MIN;
+            } else if(sp.nextGenMemberCount > NEW_SPECIES_MEMBERS_MAX) {
+                sp.nextGenMemberCount = NEW_SPECIES_MEMBERS_MAX;
+            }
             nextGenPopSize += sp.nextGenMemberCount;
+            sp.scale += sp.scale;
+            if( sp.scale > 1.0f ) sp.scale = 1.0f;
         }
         // distribute remaining "free slots" over species sorted by fitness
         long rest = popsize - nextGenPopSize;
         if( rest > 0 ) {
-            species.sort!( (a,b) => a.fitness < b.fitness );
+            species.sort!( (a,b) => a.fitness > b.fitness );
             do {
                 foreach(sp; species) {
                     sp.nextGenMemberCount++;
@@ -104,6 +126,18 @@ class SpeciesClassificator {
             } while(rest > 0);
         }
         assert(rest == 0);
+    }
+
+    /// remove species, but not individuals
+    void extinctSpecies(uint speciesIdx) {
+        long idx = long.max;
+        foreach(spidx, sp; species) {
+            if(sp.index == speciesIdx) {
+                idx = spidx;
+                break;
+            }
+        }
+        assert(idx != long.max);
     }
 
 
@@ -131,6 +165,10 @@ private:
         s.front.memberCount++;
     }
 
+    float sharedFitness() {
+        return totalFitness / individuals.length;
+    }
+
     Individual[] individuals;
 
     SpeciesData[] species;
@@ -141,4 +179,7 @@ private:
     enum cExcess = 1.0f;
     enum cDisjunct = 1.0f;
     enum cWeight = 0.4f;
+    enum NEW_SPECIES_MEMBERS_MIN = 1;
+    enum NEW_SPECIES_MEMBERS_MAX = 10;
+    enum NEW_SPECIES_SCALE = 0.1f;
 }
