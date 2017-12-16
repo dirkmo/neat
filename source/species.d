@@ -18,6 +18,17 @@ struct SpeciesData {
     float scale; // new species are scaled down at first
     Individual prototype; // the species representative
 
+    this( float scale, Individual prototype ) {
+        index = globalSpeciesCounter++;
+        memberCount = 1;
+        nextGenMemberCount = 1;
+        fitness = 0;
+        this.scale = scale;
+        this.prototype = prototype;
+    }
+    
+    static uint globalSpeciesCounter;
+
     float sharedFitness() {
         return fitness / memberCount;
     }
@@ -65,29 +76,16 @@ class SpeciesClassificator {
         this.individuals = individuals;
         foreach(ind; individuals) {
             if( ind.species == uint.max ) {
-                // no species assigned yet
-                auto best = bestMatch(ind);
-                if( best[0] < thresh ) {
-                    ind.species = best[1];
-                    addToSpecies(ind);
-                } else {
-                    // new species
-                    species ~= SpeciesData(
-                        cast(uint)species.length, // index
-                        1, // memberCount
-                        1, // nextGenMemberCount
-                        0.0, // fitness
-                        NEW_SPECIES_SCALE, // scale
-                        new Individual(ind) // prototype
-                    );
-                }
+                assignIndividual( ind );
             }
         }
+        countSpeciesMembers();        
     }
 
     /// pick new species prototypes and reassign individuals to
     /// nearest species.
-    void reassign() {
+    void reassign(Individual[] individuals) {
+        this.individuals = individuals;
         // choose new prototypes
         foreach( sp; species ) {
             sp.memberCount = 0;
@@ -96,16 +94,9 @@ class SpeciesClassificator {
         }
         // assign members to species
         foreach(ind; individuals) {
-            // no species assigned yet
-            auto best = bestMatch(ind);
-            if( best[0] < thresh ) {
-                ind.species = best[1];
-                addToSpecies(ind);
-            } else {
-                // new species
-                species ~= SpeciesData(cast(uint)species.length, 1, 1, 0.0, NEW_SPECIES_SCALE, new Individual(ind));
-            }
+            assignIndividual(ind);
         }
+        countSpeciesMembers();
     }
 
     /// calculate fitness of species and total sum
@@ -187,10 +178,36 @@ private:
         return tuple(bestDist, bestIdx);
     }
 
-    void addToSpecies( Individual ind ) {
-        auto s = species.find!( a => a.index == ind.species );
-        assert( !s.empty );
-        s.front.memberCount++;
+    void countSpeciesMembers() {
+        uint[uint] count;
+        foreach( ind; individuals ) {
+            if( ind.species == uint.max ) {
+                assignIndividual(ind);
+            }
+            if( ind.species in count ) {
+                count[ind.species]++;
+            } else {
+                count[ind.species] = 1;
+            }
+        }
+        foreach( sp; species ) {
+            sp.memberCount = count[sp.index];
+            count.remove( sp.index );
+        }
+        assert( count.length == 0 );
+    }
+
+    void assignIndividual( Individual ind ) {
+        // no species assigned yet
+        auto best = bestMatch(ind);
+        if( best[0] < thresh ) {
+            ind.species = best[1];
+        } else {
+            // new species
+            species ~= SpeciesData(NEW_SPECIES_SCALE, new Individual(ind));
+            ind.species = species[$-1].index;
+            writefln("New species %s created.", species[$-1].index);
+        }
     }
 
     float sharedFitness() {

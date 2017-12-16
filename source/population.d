@@ -77,7 +77,7 @@ class Population {
         }
 
         individuals = newIndividuals;
-        speciesClassificator.reassign();
+        speciesClassificator.reassign(individuals);
         writeln("Individual count: ", individuals.length);
     }
 
