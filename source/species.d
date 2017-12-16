@@ -23,6 +23,31 @@ struct SpeciesData {
     }
 }
 
+struct SpeciesRange {
+    SpeciesData[] species;
+    ulong idx;
+
+    this(ref SpeciesData[] species) {
+        this.species = species;
+    }
+    
+    auto front() @property {
+        return species[idx];
+    }
+
+    bool empty() @property {
+        return idx >= species.length;
+    }
+
+    void popFront() {
+        idx++;
+    }
+
+    SpeciesRange save() @property{
+        return SpeciesRange(species);
+    }
+}
+
 class SpeciesClassificator {
 
     this(Individual[] individuals, float thresh) {
@@ -140,6 +165,9 @@ class SpeciesClassificator {
         assert(idx != long.max);
     }
 
+    SpeciesRange range() {
+        return SpeciesRange(species);
+    }
 
 private:
 

@@ -51,6 +51,31 @@ class Population {
 
         Individual[] newIndividuals;
 
+        foreach( sp; speciesClassificator.range() ) {
+            const uint spIdx = sp.index;
+            // get members of species
+            auto members = individuals.filter!(a => a.species == spIdx).array;
+            // fittest individuals first
+            members.sort!( (a,b) => a.fitness > b.fitness );
+            // kill the unfit
+            uint survival = cast(uint)(members.length * survivalRate);
+            if( survival < 1 ) {
+                // kill species
+                speciesClassificator.extinctSpecies(spIdx);
+                writefln("Species %s goes extinct.", spIdx);
+            } else {
+                members.length = survival;
+                uint parent1;
+                while( members.length < sp.nextGenMemberCount ) {
+                    uint parent2 = uniform(0, survival);
+                    auto offspring = members[parent1].crossOver(members[parent2]);
+                    members ~= offspring;
+                    parent1 = (parent1 + 1) % survival;
+                }
+                newIndividuals ~= members;
+            }
+        }
+
         individuals = newIndividuals;
         speciesClassificator.reassign();
         writeln("Individual count: ", individuals.length);
@@ -85,6 +110,6 @@ class Population {
 
     SpeciesClassificator speciesClassificator;
 
-    enum survival_rate = 0.90f;
+    enum survivalRate = 0.90f;
     enum SpeciesThreshold = 2.0f;
 }
