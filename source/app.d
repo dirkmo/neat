@@ -94,7 +94,7 @@ void main()
             if( totalError == 0 ) {
                 ind.fitness = float.max;
             } else {
-                ind.fitness = 1 / totalError;;
+                ind.fitness = 1 / totalError;
             }
         }
         writeln();

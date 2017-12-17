@@ -25,7 +25,7 @@ class Population {
         foreach( ref i; individuals ) { 
             i = new Individual( pool, true /*createConPhenotype*/ );
         }
-        speciesClassificator = new SpeciesClassificator(individuals, SpeciesThreshold);
+        speciesClassificator = new SpeciesClassificator(individuals, SpeciesThreshold, 5);
     }
 
 
@@ -36,7 +36,7 @@ class Population {
         foreach( ref i; individuals ) { 
             i = new Individual( pool, true /*createConPhenotype*/ );
         }
-        speciesClassificator = new SpeciesClassificator(individuals, SpeciesThreshold);
+        speciesClassificator = new SpeciesClassificator(individuals, SpeciesThreshold, 5);
     }
 
     /// kill individuals with lowest fitness and fill up empty spaces with
@@ -57,14 +57,24 @@ class Population {
             auto members = individuals.filter!(a => a.species == spIdx).array;
             // fittest individuals first
             members.sort!( (a,b) => a.fitness > b.fitness );
-            // kill the unfit
-            uint survival = cast(uint)(members.length * survivalRate);
+
+            uint survival;
+            if( sp.isNew ) {
+                survival = cast(uint)members.length;
+                if( survival > sp.nextGenMemberCount ) {
+                    survival = sp.nextGenMemberCount;
+                }
+            } else {
+                survival = cast(uint)(members.length * survivalRate);
+            }
             if( survival < 1 ) {
                 // kill species
                 speciesClassificator.extinctSpecies(spIdx);
-                writefln("Species %s goes extinct.", spIdx);
+                writefln("Species %s (%s members) goes extinct.", spIdx, members.length);
             } else {
+                // kill the unfit
                 members.length = survival;
+                // create offspring
                 uint parent1;
                 while( members.length < sp.nextGenMemberCount ) {
                     uint parent2 = uniform(0, survival);

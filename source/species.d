@@ -18,6 +18,8 @@ struct SpeciesData {
     float scale; // new species are scaled down at first
     Individual prototype; // the species representative
 
+    static uint globalSpeciesCounter;
+    
     this( float scale, Individual prototype ) {
         index = globalSpeciesCounter++;
         memberCount = 1;
@@ -27,11 +29,11 @@ struct SpeciesData {
         this.prototype = prototype;
     }
     
-    static uint globalSpeciesCounter;
-
-    float sharedFitness() {
+    @property float sharedFitness() {
         return fitness / memberCount;
     }
+
+    @property bool isNew() { return scale < 1.0; }
 }
 
 struct SpeciesRange {
@@ -61,10 +63,11 @@ struct SpeciesRange {
 
 class SpeciesClassificator {
 
-    this(Individual[] individuals, float thresh) {
+    this(Individual[] individuals, float thresh, uint speciesCountMax) {
         this.thresh = thresh;
+        this.speciesCountMax = speciesCountMax;
         update(individuals);
-        foreach(sp; species) {
+        foreach(ref sp; species) {
             sp.scale = 1.0f;
         }
     }
@@ -90,7 +93,12 @@ class SpeciesClassificator {
         foreach( sp; species ) {
             sp.memberCount = 0;
             auto members = individuals.filter!(a => a.species == sp.index).array;
-            sp.prototype = new Individual(members[uniform(0,$)]);
+            if( members.length ) {
+                sp.prototype = new Individual(members[uniform(0,$)]);
+            } else {
+                writefln("ERROR: No members in species %s", sp.index);
+                assert(0);
+            }
         }
         // assign members to species
         foreach(ind; individuals) {
@@ -107,39 +115,59 @@ class SpeciesClassificator {
             sp.fitness = 0;
             individuals.filter!(a => a.species == sp.index)
                        .each!(b => sp.fitness += b.fitness);
-            totalFitness += sp.fitness;
+            totalFitness += sp.sharedFitness;
             count += sp.memberCount;
         }
+        writefln("Count: %s, length: %s", count, individuals.length);
+        writefln("totalFitness: %s", sharedFitness());
         assert(count == individuals.length, "ERROR: Not all individuals assigned a species!");
     }
 
     /// Calculate size of species regarding shared fitness for next generation.
     /// totalFitness has to be determined in prior by calculateFitness()
     void calculateNextGenSpeciesSize(uint popsize) {
+        writeln(__FUNCTION__);
         uint nextGenPopSize;
-        foreach(sp; species) {
-            sp.nextGenMemberCount = cast(uint)(popsize * sp.sharedFitness() * sp.scale / sharedFitness());
-            if( sp.nextGenMemberCount < NEW_SPECIES_MEMBERS_MIN ) {
-                sp.nextGenMemberCount = NEW_SPECIES_MEMBERS_MIN;
-            } else if(sp.nextGenMemberCount > NEW_SPECIES_MEMBERS_MAX) {
-                sp.nextGenMemberCount = NEW_SPECIES_MEMBERS_MAX;
+        foreach(ref sp; species) {
+            writefln("Species %s: MemberCount: %s", sp.index, sp.memberCount);
+            writefln("  sp.sharedFitness: %s, scale: %s, sharedFitness: %s", sp.sharedFitness(), sp.scale, sharedFitness());
+            sp.nextGenMemberCount = cast(uint)(popsize * sp.sharedFitness * sp.scale / sharedFitness());
+            if( sp.scale < 1.0 ) {
+                if( sp.nextGenMemberCount < NEW_SPECIES_MEMBERS_MIN ) {
+                    sp.nextGenMemberCount = NEW_SPECIES_MEMBERS_MIN;
+                } else if(sp.nextGenMemberCount > NEW_SPECIES_MEMBERS_MAX) {
+                    sp.nextGenMemberCount = NEW_SPECIES_MEMBERS_MAX;
+                }
+                sp.scale += sp.scale;
+                if( sp.scale > 1.0f ) sp.scale = 1.0f;
             }
+            writefln("  nextGenMemberCount: %s", sp.nextGenMemberCount);
             nextGenPopSize += sp.nextGenMemberCount;
-            sp.scale += sp.scale;
-            if( sp.scale > 1.0f ) sp.scale = 1.0f;
         }
-        // distribute remaining "free slots" over species sorted by fitness
-        long rest = popsize - nextGenPopSize;
+        long rest = cast(long)popsize - nextGenPopSize;
         if( rest > 0 ) {
+            writefln("rest: %s, popsize: %s, nextGenPopSize: %s", rest, popsize, nextGenPopSize);
+            // distribute remaining "free slots" over species sorted by fitness
             species.sort!( (a,b) => a.fitness > b.fitness );
             do {
-                foreach(sp; species) {
+                foreach(ref sp; species) {
                     sp.nextGenMemberCount++;
-                    if( --rest == 0 ) {
+                    if( --rest <= 0 ) {
                         break;
                     }
                 }
             } while(rest > 0);
+        } else if( rest < 0 ) {
+            // remove excess members
+            species.sort!( (a,b) => a.nextGenMemberCount > b.nextGenMemberCount );
+            while( rest < 0 ) {
+                foreach(ref sp; species) {
+                    if( rest < 0 && sp.nextGenMemberCount > NEW_SPECIES_MEMBERS_MAX ) {
+                        rest++;
+                        sp.nextGenMemberCount--;
+                    }
+                }
+            }
         }
         assert(rest == 0);
     }
@@ -156,8 +184,14 @@ class SpeciesClassificator {
         assert(idx != long.max);
     }
 
+    ///
     SpeciesRange range() {
         return SpeciesRange(species);
+    }
+
+    ///
+    @property uint numberOfSpecies() const {
+        return cast(uint)species.length;
     }
 
 private:
@@ -174,7 +208,6 @@ private:
                 bestIdx = cast(uint)idx;
             }
         }
-        writeln("Dist: ", bestDist);
         return tuple(bestDist, bestIdx);
     }
 
@@ -190,7 +223,7 @@ private:
                 count[ind.species] = 1;
             }
         }
-        foreach( sp; species ) {
+        foreach( ref sp; species ) {
             sp.memberCount = count[sp.index];
             count.remove( sp.index );
         }
@@ -198,9 +231,8 @@ private:
     }
 
     void assignIndividual( Individual ind ) {
-        // no species assigned yet
         auto best = bestMatch(ind);
-        if( best[0] < thresh ) {
+        if( (best[0] < thresh) || (species.length == speciesCountMax) ) {
             ind.species = best[1];
         } else {
             // new species
@@ -211,7 +243,7 @@ private:
     }
 
     float sharedFitness() {
-        return totalFitness / individuals.length;
+        return totalFitness/* / individuals.length*/;
     }
 
     Individual[] individuals;
@@ -220,6 +252,8 @@ private:
     float thresh;
 
     float totalFitness;
+
+    uint speciesCountMax;
 
     enum cExcess = 1.0f;
     enum cDisjunct = 1.0f;
