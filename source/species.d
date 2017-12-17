@@ -130,6 +130,18 @@ class SpeciesClassificator {
         uint nextGenPopSize;
         foreach(ref sp; species) {
             writefln("Species %s: MemberCount: %s", sp.index, sp.memberCount);
+            writefln("  sp.sharedFitness: %s, sharedFitness: %s", sp.sharedFitness, sharedFitness());
+            sp.nextGenMemberCount = cast(uint)(popsize * sp.sharedFitness / sharedFitness());
+            writefln("  nextGenMemberCount: %s", sp.nextGenMemberCount);
+            nextGenPopSize += sp.nextGenMemberCount;
+        }
+    }
+/*
+    void calculateNextGenSpeciesSize(uint popsize) {
+        writeln(__FUNCTION__);
+        uint nextGenPopSize;
+        foreach(ref sp; species) {
+            writefln("Species %s: MemberCount: %s", sp.index, sp.memberCount);
             writefln("  sp.sharedFitness: %s, scale: %s, sharedFitness: %s", sp.sharedFitness(), sp.scale, sharedFitness());
             sp.nextGenMemberCount = cast(uint)(popsize * sp.sharedFitness * sp.scale / sharedFitness());
             if( sp.scale < 1.0 ) {
@@ -171,6 +183,7 @@ class SpeciesClassificator {
         }
         assert(rest == 0);
     }
+*/
 
     /// remove species, but not individuals
     void extinctSpecies(uint speciesIdx) {
@@ -212,6 +225,7 @@ private:
     }
 
     void countSpeciesMembers() {
+        writeln(__FUNCTION__);
         uint[uint] count;
         foreach( ind; individuals ) {
             if( ind.species == uint.max ) {
@@ -223,7 +237,10 @@ private:
                 count[ind.species] = 1;
             }
         }
+        writeln(count);
         foreach( ref sp; species ) {
+            writefln("remove: %s", sp.index);
+            hier ist ein fehler
             sp.memberCount = count[sp.index];
             count.remove( sp.index );
         }

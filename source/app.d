@@ -74,7 +74,7 @@ void main()
         [1, 1, 0],
     ];
 
-    uint max = 100;
+    uint max = 600;
     foreach( gen; 0..max ) {
         writeln("============================");
         writeln("Generation ", gen);
