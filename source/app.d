@@ -87,15 +87,12 @@ void main()
             foreach( pc, p; patterns ) {
                 //writeln("Pattern ", pc);
                 float output = ind.propagate( p[0..2] )[0];
+                if( output < 0 ) output = 0; else if(output > 1) output = 1;
                 float error = abs(p[2] - output);
                 totalError += error;
                 //writefln("Output: %s", output);
             }
-            if( totalError == 0 ) {
-                ind.fitness = float.max;
-            } else {
-                ind.fitness = 1 / totalError;
-            }
+            ind.fitness = 4 - totalError;
         }
         writeln();
         pop.selection();
