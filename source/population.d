@@ -53,6 +53,7 @@ class Population {
 
         foreach( sp; speciesClassificator.range() ) {
             const uint spIdx = sp.index;
+            writefln("\n***Species %s***", spIdx);
             // get members of species
             auto members = individuals.filter!(a => a.species == spIdx).array;
             // fittest individuals first
@@ -67,12 +68,8 @@ class Population {
             } else {
                 survival = cast(uint)(members.length * survivalRate);
             }
-            if( survival < 1 ) {
-                // kill species
-                speciesClassificator.extinctSpecies(spIdx);
-                writefln("Species %s (%s members) goes extinct.", spIdx, members.length);
-            } else {
-                // kill the unfit
+            if( survival > 0 ) {
+                // kill the unworthy
                 members.length = survival;
                 // create offspring
                 uint parent1;

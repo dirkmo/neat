@@ -8,6 +8,7 @@ import std.array;
 import std.random;
 import std.range;
 import std.stdio;
+import std.string;
 import std.typecons;
 
 struct SpeciesData {
@@ -76,6 +77,7 @@ class SpeciesClassificator {
     /// and assign them to a species. If nearest species
     /// exceeds the threshold, a new species is created.
     void update(Individual[] individuals) {
+        writeln(__FUNCTION__);
         this.individuals = individuals;
         foreach(ind; individuals) {
             if( ind.species == uint.max ) {
@@ -88,6 +90,7 @@ class SpeciesClassificator {
     /// pick new species prototypes and reassign individuals to
     /// nearest species.
     void reassign(Individual[] individuals) {
+        writeln(__FUNCTION__);
         this.individuals = individuals;
         // choose new prototypes
         foreach( sp; species ) {
@@ -96,8 +99,7 @@ class SpeciesClassificator {
             if( members.length ) {
                 sp.prototype = new Individual(members[uniform(0,$)]);
             } else {
-                writefln("ERROR: No members in species %s", sp.index);
-                assert(0);
+                extinctSpecies(sp.index);
             }
         }
         // assign members to species
@@ -109,6 +111,7 @@ class SpeciesClassificator {
 
     /// calculate fitness of species and total sum
     void calculateFitness() {
+        writeln(__FUNCTION__);
         uint count;
         totalFitness = 0;
         foreach(ref sp; species) {
@@ -125,7 +128,18 @@ class SpeciesClassificator {
 
     /// Calculate size of species regarding shared fitness for next generation.
     /// totalFitness has to be determined in prior by calculateFitness()
-    void calculateNextGenSpeciesSize(uint popsize) {
+    void calculateNextGenSpeciesSize(uint popsize)
+    in {
+        uint count;
+        species.each!(s => count += s.memberCount);
+        assert(count == popsize, format("count: %s, popsize: %s", count, popsize));
+    }
+    out {
+        uint count;
+        species.each!(s => count += s.nextGenMemberCount);
+        assert(count == popsize, format("count: %s, popsize: %s", count, popsize));
+    }
+    body {
         writeln(__FUNCTION__);
         uint nextGenPopSize;
         foreach(ref sp; species) {
@@ -135,7 +149,16 @@ class SpeciesClassificator {
             writefln("  nextGenMemberCount: %s", sp.nextGenMemberCount);
             nextGenPopSize += sp.nextGenMemberCount;
         }
+        while(nextGenPopSize < popsize ) {
+            foreach(ref sp; species) {
+                if(nextGenPopSize < popsize ) {
+                    sp.nextGenMemberCount++;
+                    nextGenPopSize++;
+                }
+            }
+        }
     }
+
 /*
     void calculateNextGenSpeciesSize(uint popsize) {
         writeln(__FUNCTION__);
@@ -187,14 +210,13 @@ class SpeciesClassificator {
 
     /// remove species, but not individuals
     void extinctSpecies(uint speciesIdx) {
-        long idx = long.max;
         foreach(spidx, sp; species) {
             if(sp.index == speciesIdx) {
-                idx = spidx;
-                break;
+                species.remove(spidx);
+                return;
             }
         }
-        assert(idx != long.max);
+        throw new Exception(format("Species %s not found", speciesIdx));
     }
 
     ///
@@ -205,6 +227,16 @@ class SpeciesClassificator {
     ///
     @property uint numberOfSpecies() const {
         return cast(uint)species.length;
+    }
+
+    /// get species by id (param species is not an array index)
+    void getSpeciesData(uint species, out SpeciesData speciesData) {
+        foreach( ref sp; this.species ) {
+            if( sp.index == species ) {
+                speciesData = sp;
+            }
+        }
+        throw new Exception(format("Species %s does not exist", species));
     }
 
 private:
@@ -237,10 +269,9 @@ private:
                 count[ind.species] = 1;
             }
         }
-        writeln(count);
+        writeln("Vorher: ", count);
         foreach( ref sp; species ) {
-            writefln("remove: %s", sp.index);
-            hier ist ein fehler
+            writefln("remove: %s, memberCount: %s", sp.index, sp.memberCount);
             sp.memberCount = count[sp.index];
             count.remove( sp.index );
         }
