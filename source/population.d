@@ -42,7 +42,7 @@ class Population {
     /// kill individuals with lowest fitness and fill up empty spaces with
     /// new offspring
     void selection() {
-        // check that all individuals belong to a species
+        // make sure that all individuals belong to a species
         speciesClassificator.update(individuals);
         // calculate fitness of species
         speciesClassificator.calculateFitness();
@@ -84,8 +84,15 @@ class Population {
         }
 
         individuals = newIndividuals;
+        // pick new prototypes and assign individuals to a species
         speciesClassificator.reassign(individuals);
         writeln("Individual count: ", individuals.length);
+
+        foreach(sp; speciesClassificator.range()) {
+            auto members = individuals.filter!(a => a.species == sp.index).walkLength();
+            assert( members == sp.nextGenMemberCount );
+            assert( members == sp.memberCount);
+        }
     }
 
     void mutation() {
