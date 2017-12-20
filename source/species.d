@@ -81,7 +81,7 @@ class SpeciesClassificator {
     /// and assign them to a species. If nearest species
     /// exceeds the threshold, a new species is created.
     void update(Individual[] individuals) {
-        writeln(__FUNCTION__);
+        //writeln(__FUNCTION__);
         this.individuals = individuals;
         foreach(ind; individuals) {
             if( ind.species == uint.max ) {
@@ -93,7 +93,7 @@ class SpeciesClassificator {
 
     /// pick new species prototypes
     void pickNewPrototypes(Individual[] individuals) {
-        writeln(__FUNCTION__);
+        //writeln(__FUNCTION__);
         this.individuals = individuals;
         // choose new prototypes
         foreach( sp; species ) {
@@ -114,7 +114,7 @@ class SpeciesClassificator {
 
     /// calculate fitness of species and total sum
     void calculateFitness() {
-        writeln(__FUNCTION__);
+        //writeln(__FUNCTION__);
         uint count;
         totalFitness = 0;
         foreach(ref sp; species) {
@@ -124,29 +124,29 @@ class SpeciesClassificator {
             totalFitness += sp.sharedFitness;
             count += sp.memberCount;
         }
-        writefln("Count: %s, length: %s", count, individuals.length);
-        writefln("totalFitness: %s", sharedFitness());
+        //writefln("Count: %s, length: %s", count, individuals.length);
+        //writefln("totalFitness: %s", sharedFitness());
         assert(count == individuals.length, "ERROR: Not all individuals assigned a species!");
     }
 
     /// Calculate size of species regarding shared fitness for next generation.
     /// totalFitness has to be determined in prior by calculateFitness()
     void calculateNextGenSpeciesSize(uint popsize) {
-        writeln(__FUNCTION__);
+        //writeln(__FUNCTION__);
         uint nextGenPopSize;
         foreach(ref sp; species) {
-            writefln("Species %s: MemberCount: %s, age: %s", sp.index, sp.memberCount, sp.age);
-            writefln("  sp.sharedFitness: %s, sharedFitness: %s", sp.sharedFitness(), sharedFitness());
+            //writefln("Species %s: MemberCount: %s, age: %s", sp.index, sp.memberCount, sp.age);
+            //writefln("  sp.sharedFitness: %s, sharedFitness: %s", sp.sharedFitness(), sharedFitness());
             sp.nextGenMemberCount = cast(uint)(popsize * sp.sharedFitness / sharedFitness());
             if( sp.isNew ) {
                 if( sp.nextGenMemberCount < 1 ) sp.nextGenMemberCount = 1;
             }
-            writefln("  nextGenMemberCount: %s", sp.nextGenMemberCount);
+            //writefln("  nextGenMemberCount: %s", sp.nextGenMemberCount);
             nextGenPopSize += sp.nextGenMemberCount;
         }
         long rest = cast(long)popsize - nextGenPopSize;
         if( rest > 0 ) {
-            writefln("rest: %s, popsize: %s, nextGenPopSize: %s", rest, popsize, nextGenPopSize);
+            //writefln("rest: %s, popsize: %s, nextGenPopSize: %s", rest, popsize, nextGenPopSize);
             // distribute remaining "free slots" over species sorted by fitness
             species.sort!( (a,b) => a.fitness > b.fitness );
             do {
@@ -169,10 +169,10 @@ class SpeciesClassificator {
                 }
             }
         }
-        foreach(sp; species) {
-            writefln("  nextGenMemberCount: %s", sp.nextGenMemberCount);
-        }
-        writefln("rest: %s, popsize: %s, nextGenPopSize: %s", rest, popsize, nextGenPopSize);
+        //foreach(sp; species) {
+        //    writefln("  nextGenMemberCount: %s", sp.nextGenMemberCount);
+        //}
+        //writefln("rest: %s, popsize: %s, nextGenPopSize: %s", rest, popsize, nextGenPopSize);
         assert(rest == 0);
     }
 
@@ -231,7 +231,6 @@ private:
     }
 
     void countSpeciesMembers() {
-        writeln(__FUNCTION__);
         uint[uint] count;
         foreach( ind; individuals ) {
             if( ind.species == uint.max ) {
@@ -243,12 +242,12 @@ private:
                 count[ind.species] = 1;
             }
         }
-        writeln("Vorher: ", count);
+        //writeln("Vorher: ", count);
         foreach( ref sp; species ) {
-            writef("Species %s ", sp.index);
+            //writef("Species %s ", sp.index);
             stdout.flush();
             sp.memberCount = count[sp.index];
-            writefln("has %s members", sp.memberCount);
+            //writefln("has %s members", sp.memberCount);
             count.remove( sp.index );
         }
         assert( count.length == 0 );

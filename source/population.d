@@ -52,10 +52,10 @@ class Population {
 
         Individual[] newIndividuals;
         
-        writeln("Starting selection");
+        //writeln("Starting selection");
         foreach( sp; speciesClassificator.range() ) {
             const uint spIdx = sp.index;
-            writefln("\n***Species %s***", spIdx);
+            //writefln("\n***Species %s***", spIdx);
             // get members of species
             auto members = individuals.filter!(a => a.species == spIdx).array;
 
@@ -94,7 +94,7 @@ class Population {
         // pick new prototypes
         speciesClassificator.pickNewPrototypes(individuals);
         speciesClassificator.age();
-        writeln("Individual count: ", individuals.length);
+        //writeln("Individual count: ", individuals.length);
     }
 
     void mutation() {
@@ -113,8 +113,16 @@ class Population {
         return avg / individuals.length;
     }
 
-    Individual first() {
-        return individuals[0];
+    Individual best() {
+        float max = 0;
+        ulong idx;
+        foreach(lidx, i; individuals) {
+            if( i.fitness > max ) {
+                max = i.fitness;
+                idx = lidx;
+            }
+        }
+        return individuals[idx];
     }
 
 

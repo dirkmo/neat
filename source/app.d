@@ -75,6 +75,7 @@ void main()
     ];
 
     uint max = 600;
+    enum FITNESS_TARGET = -0.05f;
     foreach( gen; 0..max ) {
         writeln("============================");
         writeln("Generation ", gen);
@@ -82,37 +83,37 @@ void main()
             pop.pool.nodeGenes.length, pop.pool.conGenes.length,
             pop.pool.getLayerCount());
         foreach( idx, ind; pop.individuals ) {
-            //writefln("----------Ind: %s----------", idx);
             float totalError = 0;
             foreach( pc, p; patterns ) {
-                //writeln("Pattern ", pc);
                 float output = ind.propagate( p[0..2] )[0];
-                if( output < 0 ) output = 0; else if(output > 1) output = 1;
-                float error = abs(p[2] - output);
+                const error = abs(output - p[2]);
                 totalError += error;
-                //writefln("Output: %s", output);
             }
-            ind.fitness = 4 - totalError;
+            ind.fitness = -totalError;
         }
         writeln();
-        pop.selection();
-        if(pop.first.fitness < 0.01 ) {
+        if(pop.best.fitness > FITNESS_TARGET ) {
             break;
         }
-        if( gen < max - 1 )
-            pop.mutation();
+        pop.selection();
+        pop.mutation();
     }
+
     float totalError = 0;
-    foreach( pc, p; patterns ) {
-        writeln("Pattern ", pc);
-        float output = pop.individuals[0].propagate( p[0..2] )[0];
-        writefln("Output: %s", output);
-        float error = abs(p[2] - output);
-        totalError += error;
+
+    auto best = pop.best;
+
+    writefln("Best fitness: %s", best.fitness);
+    if( best.fitness > FITNESS_TARGET ) {
+        printPhenotype(pop.best);
+        foreach( pc, p; patterns ) {
+            writef("Pattern %s: ", pc);
+            float output = best.propagate( p[0..2] )[0];
+            writefln("%s", output);
+            const error = abs(output - p[2]);
+            totalError += error;        
+        }
         writefln("TotalError: %s", totalError);
     }
-    
-    printPhenotype(pop.first);
-
     
 }
