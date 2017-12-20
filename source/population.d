@@ -100,8 +100,8 @@ class Population {
     void mutation() {
         foreach( i; individuals ) {
             i.mutateWeight( 0.1f, 1.0f );
-            i.mutateSplitUpConnection(0.001f);
-            i.mutateAddConnection(0.001f);
+            i.mutateSplitUpConnection(0.0005f);
+            i.mutateAddConnection(0.0005f);
         }
     }
 

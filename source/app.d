@@ -102,7 +102,6 @@ void main()
     float totalError = 0;
 
     auto best = pop.best;
-
     writefln("Best fitness: %s", best.fitness);
     if( best.fitness > FITNESS_TARGET ) {
         printPhenotype(pop.best);

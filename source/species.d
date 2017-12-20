@@ -180,8 +180,9 @@ class SpeciesClassificator {
     void extinctSpecies(uint speciesIdx) {
         foreach(spidx, sp; species) {
             if(sp.index == speciesIdx) {
-                writefln("Species %s extinct");
                 species.remove(spidx);
+                // for some reason species.remove() does not change the array length...
+                species.length--;
                 return;
             }
         }
@@ -242,12 +243,15 @@ private:
                 count[ind.species] = 1;
             }
         }
-        //writeln("Vorher: ", count);
+        writeln("Vorher: ", count);
+        write("Species: ");
+        species.each!( a=> writef("%s ", a.index) );
+        writeln();
         foreach( ref sp; species ) {
-            //writef("Species %s ", sp.index);
+            writef("Species %s ", sp.index);
             stdout.flush();
             sp.memberCount = count[sp.index];
-            //writefln("has %s members", sp.memberCount);
+            writefln("has %s members", sp.memberCount);
             count.remove( sp.index );
         }
         assert( count.length == 0 );
