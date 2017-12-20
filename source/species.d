@@ -16,25 +16,29 @@ struct SpeciesData {
     uint memberCount; // current member count
     uint nextGenMemberCount; // member count for next generation
     float fitness; // fitness sum over all members (no average)
-    float scale; // new species are scaled down at first
+    uint age; // counts number of generations this species exists
     Individual prototype; // the species representative
 
     static uint globalSpeciesCounter;
-    
-    this( float scale, Individual prototype ) {
+
+    enum AGE_MATURE = 10;
+
+
+    this( Individual prototype ) {
         index = globalSpeciesCounter++;
         memberCount = 1;
         nextGenMemberCount = 1;
         fitness = 0;
-        this.scale = scale;
         this.prototype = prototype;
     }
     
+    /// fitness adjusted for species size and age
     @property float sharedFitness() {
-        return fitness / memberCount;
+        const scale = cast(float)age / AGE_MATURE;
+        return fitness * scale / memberCount;
     }
 
-    @property bool isNew() { return scale < 1.0; }
+    @property bool isNew() { return age < AGE_MATURE; }
 }
 
 struct SpeciesRange {
@@ -68,8 +72,8 @@ class SpeciesClassificator {
         this.thresh = thresh;
         this.speciesCountMax = speciesCountMax;
         update(individuals);
-        foreach(ref sp; species) {
-            sp.scale = 1.0f;
+        foreach( ref sp; species ) {
+            sp.age = SpeciesData.AGE_MATURE;
         }
     }
 
@@ -87,9 +91,8 @@ class SpeciesClassificator {
         countSpeciesMembers();        
     }
 
-    /// pick new species prototypes and reassign individuals to
-    /// nearest species.
-    void reassign(Individual[] individuals) {
+    /// pick new species prototypes
+    void pickNewPrototypes(Individual[] individuals) {
         writeln(__FUNCTION__);
         this.individuals = individuals;
         // choose new prototypes
@@ -102,10 +105,10 @@ class SpeciesClassificator {
                 extinctSpecies(sp.index);
             }
         }
-        // assign members to species
-        foreach(ind; individuals) {
-            assignIndividual(ind);
-        }
+        // assign members to a species
+//      foreach(ind; individuals) {
+//          assignIndividual(ind);
+//      }
         countSpeciesMembers();
     }
 
@@ -132,17 +135,11 @@ class SpeciesClassificator {
         writeln(__FUNCTION__);
         uint nextGenPopSize;
         foreach(ref sp; species) {
-            writefln("Species %s: MemberCount: %s", sp.index, sp.memberCount);
-            writefln("  sp.sharedFitness: %s, scale: %s, sharedFitness: %s", sp.sharedFitness(), sp.scale, sharedFitness());
-            sp.nextGenMemberCount = cast(uint)(popsize * sp.sharedFitness * sp.scale / sharedFitness());
-            if( sp.scale < 1.0 ) {
-                if( sp.nextGenMemberCount < NEW_SPECIES_MEMBERS_MIN ) {
-                    sp.nextGenMemberCount = NEW_SPECIES_MEMBERS_MIN;
-                } else if(sp.nextGenMemberCount > NEW_SPECIES_MEMBERS_MAX) {
-                    sp.nextGenMemberCount = NEW_SPECIES_MEMBERS_MAX;
-                }
-                sp.scale += sp.scale;
-                if( sp.scale > 1.0f ) sp.scale = 1.0f;
+            writefln("Species %s: MemberCount: %s, age: %s", sp.index, sp.memberCount, sp.age);
+            writefln("  sp.sharedFitness: %s, sharedFitness: %s", sp.sharedFitness(), sharedFitness());
+            sp.nextGenMemberCount = cast(uint)(popsize * sp.sharedFitness / sharedFitness());
+            if( sp.isNew ) {
+                if( sp.nextGenMemberCount < 1 ) sp.nextGenMemberCount = 1;
             }
             writefln("  nextGenMemberCount: %s", sp.nextGenMemberCount);
             nextGenPopSize += sp.nextGenMemberCount;
@@ -165,12 +162,15 @@ class SpeciesClassificator {
             species.sort!( (a,b) => a.nextGenMemberCount > b.nextGenMemberCount );
             while( rest < 0 ) {
                 foreach(ref sp; species) {
-                    if( rest < 0 && sp.nextGenMemberCount > NEW_SPECIES_MEMBERS_MAX ) {
+                    if( rest < 0 && !sp.isNew ) {
                         rest++;
                         sp.nextGenMemberCount--;
                     }
                 }
             }
+        }
+        foreach(sp; species) {
+            writefln("  nextGenMemberCount: %s", sp.nextGenMemberCount);
         }
         writefln("rest: %s, popsize: %s, nextGenPopSize: %s", rest, popsize, nextGenPopSize);
         assert(rest == 0);
@@ -206,6 +206,11 @@ class SpeciesClassificator {
             }
         }
         throw new Exception(format("Species %s does not exist", species));
+    }
+
+    void age() {
+        foreach(ref sp; species)
+            sp.age++;
     }
 
 private:
@@ -255,7 +260,7 @@ private:
             ind.species = best[1];
         } else {
             // new species
-            species ~= SpeciesData(NEW_SPECIES_SCALE, new Individual(ind));
+            species ~= SpeciesData(new Individual(ind));
             ind.species = species[$-1].index;
             writefln("New species %s created.", species[$-1].index);
         }
@@ -277,7 +282,4 @@ private:
     enum cExcess = 1.0f;
     enum cDisjunct = 1.0f;
     enum cWeight = 0.4f;
-    enum NEW_SPECIES_MEMBERS_MIN = 1;
-    enum NEW_SPECIES_MEMBERS_MAX = 10;
-    enum NEW_SPECIES_SCALE = 0.1f;
 }

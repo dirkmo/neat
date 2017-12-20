@@ -51,24 +51,25 @@ class Population {
         speciesClassificator.calculateNextGenSpeciesSize(popsize);
 
         Individual[] newIndividuals;
-
+        
+        writeln("Starting selection");
         foreach( sp; speciesClassificator.range() ) {
             const uint spIdx = sp.index;
             writefln("\n***Species %s***", spIdx);
             // get members of species
             auto members = individuals.filter!(a => a.species == spIdx).array;
+
+            assert(members.length == sp.memberCount);
+
             // fittest individuals first
             members.sort!( (a,b) => a.fitness > b.fitness );
 
-            uint survival;
+            uint survival = cast(uint)(sp.nextGenMemberCount * survivalRate);
             if( sp.isNew ) {
-                survival = cast(uint)members.length;
-                if( survival > sp.nextGenMemberCount ) {
-                    survival = sp.nextGenMemberCount;
-                }
-            } else {
-                survival = cast(uint)(members.length * survivalRate);
+                // new / immature species, won't extinct
+                if( survival == 0 ) survival = 1;
             }
+            if( sp.memberCount < survival ) survival = sp.memberCount;
             if( survival > 0 ) {
                 // kill the unworthy
                 members.length = survival;
@@ -76,6 +77,11 @@ class Population {
                 uint parent1;
                 while( members.length < sp.nextGenMemberCount ) {
                     uint parent2 = uniform(0, survival);
+                    if( members[parent2] is null ) {
+                        writefln("len: %s, survival: %s, parent2: %s, sp.memberCount: %s",
+                                 members.length, survival, parent2, sp.memberCount);
+                        throw new Exception("warum nur???");
+                    }
                     auto offspring = members[parent1].crossOver(members[parent2]);
                     members ~= offspring;
                     parent1 = (parent1 + 1) % survival;
@@ -85,8 +91,9 @@ class Population {
         }
 
         individuals = newIndividuals;
-        // pick new prototypes and assign individuals to a species
-        speciesClassificator.reassign(individuals);
+        // pick new prototypes
+        speciesClassificator.pickNewPrototypes(individuals);
+        speciesClassificator.age();
         writeln("Individual count: ", individuals.length);
     }
 
@@ -120,5 +127,5 @@ class Population {
     SpeciesClassificator speciesClassificator;
 
     enum survivalRate = 0.90f;
-    enum SpeciesThreshold = 2.0f;
+    enum SpeciesThreshold = 3.0f;
 }
