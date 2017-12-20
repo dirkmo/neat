@@ -128,38 +128,6 @@ class SpeciesClassificator {
 
     /// Calculate size of species regarding shared fitness for next generation.
     /// totalFitness has to be determined in prior by calculateFitness()
-    void calculateNextGenSpeciesSize(uint popsize)
-    in {
-        uint count;
-        species.each!(s => count += s.memberCount);
-        assert(count == popsize, format("count: %s, popsize: %s", count, popsize));
-    }
-    out {
-        uint count;
-        species.each!(s => count += s.nextGenMemberCount);
-        assert(count == popsize, format("count: %s, popsize: %s", count, popsize));
-    }
-    body {
-        writeln(__FUNCTION__);
-        uint nextGenPopSize;
-        foreach(ref sp; species) {
-            writefln("Species %s: MemberCount: %s", sp.index, sp.memberCount);
-            writefln("  sp.sharedFitness: %s, sharedFitness: %s", sp.sharedFitness, sharedFitness());
-            sp.nextGenMemberCount = cast(uint)(popsize * sp.sharedFitness / sharedFitness());
-            writefln("  nextGenMemberCount: %s", sp.nextGenMemberCount);
-            nextGenPopSize += sp.nextGenMemberCount;
-        }
-        while(nextGenPopSize < popsize ) {
-            foreach(ref sp; species) {
-                if(nextGenPopSize < popsize ) {
-                    sp.nextGenMemberCount++;
-                    nextGenPopSize++;
-                }
-            }
-        }
-    }
-
-/*
     void calculateNextGenSpeciesSize(uint popsize) {
         writeln(__FUNCTION__);
         uint nextGenPopSize;
@@ -204,14 +172,15 @@ class SpeciesClassificator {
                 }
             }
         }
+        writefln("rest: %s, popsize: %s, nextGenPopSize: %s", rest, popsize, nextGenPopSize);
         assert(rest == 0);
     }
-*/
 
     /// remove species, but not individuals
     void extinctSpecies(uint speciesIdx) {
         foreach(spidx, sp; species) {
             if(sp.index == speciesIdx) {
+                writefln("Species %s extinct");
                 species.remove(spidx);
                 return;
             }
@@ -271,8 +240,10 @@ private:
         }
         writeln("Vorher: ", count);
         foreach( ref sp; species ) {
-            writefln("remove: %s, memberCount: %s", sp.index, sp.memberCount);
+            writef("Species %s ", sp.index);
+            stdout.flush();
             sp.memberCount = count[sp.index];
+            writefln("has %s members", sp.memberCount);
             count.remove( sp.index );
         }
         assert( count.length == 0 );

@@ -88,12 +88,6 @@ class Population {
         // pick new prototypes and assign individuals to a species
         speciesClassificator.reassign(individuals);
         writeln("Individual count: ", individuals.length);
-
-        foreach(sp; speciesClassificator.range()) {
-            auto members = individuals.filter!(a => a.species == sp.index).walkLength();
-            assert( members == sp.nextGenMemberCount );
-            assert( members == sp.memberCount);
-        }
     }
 
     void mutation() {
