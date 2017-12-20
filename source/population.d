@@ -11,6 +11,7 @@ import std.container;
 import std.stdio;
 import std.math;
 import std.random;
+import std.range;
 
 class Population {                                                           
     this( uint popsize, uint inputs, uint outputs, bool recurrent ) { 
