@@ -79,9 +79,10 @@ void main()
     foreach( gen; 0..max ) {
         writeln("============================");
         writeln("Generation ", gen);
-        writefln("Nodes: %s, Cons: %s, Layers: %s",
+        const best = pop.best;
+        writefln("Nodes: %s, Cons: %s, Layers: %s, best: %s (species %s)",
             pop.pool.nodeGenes.length, pop.pool.conGenes.length,
-            pop.pool.getLayerCount());
+            pop.pool.getLayerCount(), best.fitness, best.species);
         foreach( idx, ind; pop.individuals ) {
             float totalError = 0;
             foreach( pc, p; patterns ) {
@@ -96,13 +97,17 @@ void main()
             break;
         }
         pop.selection();
-        pop.mutation();
+        pop.mutateWeights();
+        if(gen % 5 == 0) {
+            pop.mutateSplitUpConnections();
+            pop.mutateAddConnections();
+        }
     }
 
     float totalError = 0;
 
     auto best = pop.best;
-    writefln("Best fitness: %s", best.fitness);
+    writefln("Best fitness: %s, species: %s", best.fitness, best.species);
     if( best.fitness > FITNESS_TARGET ) {
         printPhenotype(pop.best);
         foreach( pc, p; patterns ) {

@@ -105,6 +105,24 @@ class Population {
         }
     }
 
+    void mutateWeights() {
+        foreach( i; individuals ) {
+            i.mutateWeight( 0.1f/*probability*/, 1.0f /*strength*/ );
+        }
+    }
+
+    void mutateSplitUpConnections() {
+        foreach( i; individuals ) {
+            i.mutateSplitUpConnection(0.001f);
+        }        
+    }
+
+    void mutateAddConnections() {
+        foreach( i; individuals ) {
+            i.mutateAddConnection(0.001f);
+        }
+    }
+
     float average() {
         float avg = 0;
         foreach(i; individuals) {
@@ -114,7 +132,7 @@ class Population {
     }
 
     Individual best() {
-        float max = 0;
+        float max = -float.max;
         ulong idx;
         foreach(lidx, i; individuals) {
             if( i.fitness > max ) {

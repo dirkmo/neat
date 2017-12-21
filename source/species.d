@@ -95,6 +95,7 @@ class SpeciesClassificator {
     void pickNewPrototypes(Individual[] individuals) {
         //writeln(__FUNCTION__);
         this.individuals = individuals;
+        uint[] extinctionList;
         // choose new prototypes
         foreach( sp; species ) {
             sp.memberCount = 0;
@@ -102,9 +103,10 @@ class SpeciesClassificator {
             if( members.length ) {
                 sp.prototype = new Individual(members[uniform(0,$)]);
             } else {
-                extinctSpecies(sp.index);
+                extinctionList ~= sp.index;
             }
         }
+        extinctSpecies(extinctionList);
         // assign members to a species
 //      foreach(ind; individuals) {
 //          assignIndividual(ind);
@@ -177,16 +179,17 @@ class SpeciesClassificator {
     }
 
     /// remove species, but not individuals
-    void extinctSpecies(uint speciesIdx) {
-        foreach(spidx, sp; species) {
-            if(sp.index == speciesIdx) {
-                species.remove(spidx);
-                // for some reason species.remove() does not change the array length...
-                species.length--;
-                return;
+    void extinctSpecies(uint[] extinctionList) {
+        foreach( extsp; extinctionList ) {
+            foreach(spidx, sp; species) {
+                if(sp.index == extsp) {
+                    species.remove(spidx);
+                    // for some reason species.remove() does not change the array length...
+                    species.length--;
+                    writefln("Species %s extinct", sp.index);
+                }
             }
         }
-        throw new Exception(format("Species %s not found", speciesIdx));
     }
 
     ///
@@ -243,18 +246,11 @@ private:
                 count[ind.species] = 1;
             }
         }
-        writeln("Vorher: ", count);
-        write("Species: ");
-        species.each!( a=> writef("%s ", a.index) );
-        writeln();
         foreach( ref sp; species ) {
-            writef("Species %s ", sp.index);
             stdout.flush();
             sp.memberCount = count[sp.index];
-            writefln("has %s members", sp.memberCount);
             count.remove( sp.index );
         }
-        assert( count.length == 0 );
     }
 
     void assignIndividual( Individual ind ) {
